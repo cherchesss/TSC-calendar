@@ -3,10 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Календарь событий</title>
+    <title>Календарь событий - Tenzor Sailing Club</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Tektur:wght@400;600;700;800&family=Nairi:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.cdnfonts.com/css/zing-rust-base" rel="stylesheet">
+    <link href="https://fonts.cdnfonts.com/css/tt-octosquares" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -15,31 +17,48 @@
         }
 
         body {
-            font-family: 'Nairi', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: 
-                repeating-linear-gradient(
-                    45deg,
-                    #34cc67 0px,
-                    #34cc67 20px,
-                    transparent 20px,
-                    transparent 40px
-                ),
-                repeating-linear-gradient(
-                    -45deg,
-                    #ff00ff 0px,
-                    #ff00ff 3px,
-                    transparent 3px,
-                    transparent 60px
-                ),
-                linear-gradient(135deg, #34cc67 0%, #2d8f47 100%);
+                radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 50%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                linear-gradient(135deg, #1e3a8a 0%, #1e40af 25%, #2563eb 50%, #3b82f6 75%, #60a5fa 100%);
             min-height: 100vh;
             color: #333;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                repeating-linear-gradient(
+                    0deg,
+                    transparent 0px,
+                    transparent 100px,
+                    rgba(255, 255, 255, 0.08) 100px,
+                    rgba(255, 255, 255, 0.08) 101px
+                ),
+                repeating-linear-gradient(
+                    90deg,
+                    transparent 0px,
+                    transparent 100px,
+                    rgba(255, 255, 255, 0.08) 100px,
+                    rgba(255, 255, 255, 0.08) 101px
+                );
+            pointer-events: none;
         }
 
         .container {
             max-width: 400px;
             margin: 0 auto;
             padding: 20px;
+            position: relative;
+            z-index: 1;
         }
 
         .header {
@@ -52,25 +71,27 @@
         }
 
         .logo {
-            width: 120px;
+            width: 162px;
             height: auto;
             margin-bottom: 15px;
-            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
         }
 
         .header h1 {
-            font-family: 'Tektur', sans-serif;
-            font-size: 28px;
+            font-family: 'Zing Rust Base', 'Inter', sans-serif;
+            font-size: 24px;
             font-weight: 800;
             margin-bottom: 5px;
             letter-spacing: -0.5px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
         .header p {
-            font-family: 'Nairi', sans-serif;
+            font-family: 'Inter', sans-serif;
             opacity: 0.9;
             font-size: 16px;
             font-weight: 400;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
         }
 
         .filters {
@@ -82,12 +103,12 @@
         }
 
         .filter-btn {
-            background: rgba(52, 204, 103, 0.3);
-            border: 2px solid #34cc67;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.4);
             padding: 8px 16px;
             border-radius: 20px;
             color: white;
-            font-family: 'Tektur', sans-serif;
+            font-family: 'TT Octosquares', 'Inter', sans-serif;
             font-size: 13px;
             font-weight: 600;
             cursor: pointer;
@@ -97,9 +118,10 @@
         }
 
         .filter-btn:hover, .filter-btn.active {
-            background: #34cc67;
+            background: rgba(255, 255, 255, 0.9);
+            color: #1e3a8a;
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(52, 204, 103, 0.4);
+            box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
         }
 
         .calendar {
@@ -107,7 +129,8 @@
             border-radius: 20px;
             padding: 20px;
             backdrop-filter: blur(20px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
         }
 
         .calendar-header {
@@ -118,9 +141,10 @@
         }
 
         .calendar-header h2 {
-            font-family: 'Tektur', sans-serif;
+            font-family: 'TT Octosquares', 'Inter', sans-serif;
             font-size: 22px;
             font-weight: 700;
+            color: #1e3a8a;
         }
 
         .weekdays {
@@ -132,10 +156,10 @@
 
         .weekday {
             text-align: center;
-            font-family: 'Tektur', sans-serif;
+            font-family: 'TT Octosquares', 'Inter', sans-serif;
             font-size: 12px;
             font-weight: 600;
-            color: #666;
+            color: #1e40af;
             padding: 10px 0;
         }
 
@@ -157,29 +181,30 @@
             position: relative;
             font-size: 14px;
             font-weight: 500;
+            color: #1e3a8a;
         }
 
         .day:hover {
-            background: rgba(52, 204, 103, 0.1);
+            background: rgba(59, 130, 246, 0.1);
             transform: scale(1.05);
         }
 
         .day.has-events {
-            background: linear-gradient(135deg, #34cc67, #2d8f47);
+            background: linear-gradient(135deg, #2563eb, #1e40af);
             color: white;
-            box-shadow: 0 4px 15px rgba(52, 204, 103, 0.3);
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
         }
 
         .day.has-events:hover {
             transform: scale(1.1);
-            box-shadow: 0 6px 20px rgba(52, 204, 103, 0.4);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
         }
 
         .day.selected {
-            background: linear-gradient(135deg, #ff00ff, #cc00cc) !important;
+            background: linear-gradient(135deg, #60a5fa, #3b82f6) !important;
             color: white !important;
             transform: scale(1.1);
-            box-shadow: 0 6px 20px rgba(255, 0, 255, 0.4);
+            box-shadow: 0 6px 20px rgba(96, 165, 250, 0.5);
         }
 
         .event-indicator {
@@ -217,11 +242,9 @@
             color: inherit;
         }
 
-        .event-card.football { border-left-color: #4CAF50; }
-        .event-card.basketball { border-left-color: #FF9800; }
-        .event-card.tennis { border-left-color: #9C27B0; }
-        .event-card.formula1 { border-left-color: #F44336; }
-        .event-card.hockey { border-left-color: #2196F3; }
+        .event-card.pestovo { border-left-color: #2563eb; }
+        .event-card.tec { border-left-color: #1e40af; }
+        .event-card.intensive { border-left-color: #60a5fa; }
 
         .event-header {
             display: flex;
@@ -241,38 +264,30 @@
             color: white;
         }
 
-        .sport-icon.football { background: #4CAF50; }
-        .sport-icon.basketball { background: #FF9800; }
-        .sport-icon.tennis { background: #9C27B0; }
-        .sport-icon.formula1 { background: #F44336; }
-        .sport-icon.hockey { background: #2196F3; }
+        .sport-icon.pestovo { background: #2563eb; }
+        .sport-icon.tec { background: #1e40af; }
+        .sport-icon.intensive { background: #60a5fa; }
 
         .event-title {
-            font-family: 'Tektur', sans-serif;
+            font-family: 'TT Octosquares', 'Inter', sans-serif;
             font-weight: 700;
             font-size: 16px;
             margin-bottom: 5px;
+            color: #1e3a8a;
         }
 
         .event-details {
-            font-family: 'Nairi', sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: 14px;
-            color: #666;
+            color: #64748b;
             margin-bottom: 3px;
             font-weight: 400;
-        }
-
-        .event-time {
-            font-family: 'Nairi', sans-serif;
-            font-size: 13px;
-            color: #999;
-            font-weight: 500;
         }
 
         .no-events {
             text-align: center;
             padding: 40px 20px;
-            color: #666;
+            color: #64748b;
         }
 
         .no-events-icon {
@@ -290,52 +305,71 @@
             animation: fadeIn 0.5s ease forwards;
         }
 
-        .cta-button {
-            text-align: center;
-            margin-top: 25px;
+        @keyframes wave {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
         }
 
-        .cta-button a {
-            display: inline-block;
-            background: linear-gradient(135deg, #ff00ff, #cc00cc);
+        .logo {
+            animation: wave 3s ease-in-out infinite;
+        }
+
+        .register-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #2563eb, #1e40af);
+            border: none;
+            padding: 15px 20px;
+            border-radius: 15px;
             color: white;
-            text-decoration: none;
-            padding: 12px 24px;
-            border-radius: 20px;
-            font-family: 'Tektur', sans-serif;
+            font-family: 'TT Octosquares', 'Inter', sans-serif;
             font-size: 16px;
             font-weight: 700;
-            box-shadow: 0 6px 16px rgba(255, 0, 255, 0.3);
+            cursor: pointer;
             transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            text-decoration: none;
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            box-shadow: 0 5px 15px rgba(37, 99, 235, 0.3);
         }
 
-        .cta-button a:hover {
+        .register-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(255, 0, 255, 0.4);
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            text-decoration: none;
+            color: white;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <svg class="logo" width="120" height="37" viewBox="0 0 207 66" xmlns="http://www.w3.org/2000/svg">
-                <defs><style>.b{fill:white;fill-rule:evenodd;}</style></defs>
-                <path class="b" d="M68.34,.01h-17.66V66h17.66V.01h0ZM.86,.01H18.51V66H.86V.01H.86ZM25.77,20.49h17.66v45.51H25.77V20.49h0Zm.03-20.49h17.6V11.37l-17.6,6.55V0Z"/>
-                <path class="b" d="M76.54,63.55V0h14.88V15.02h10.65c11.4,0,17.1,5.7,17.1,17.1v16.79c0,5.56-1.46,9.8-4.38,12.72-2.92,2.92-7.16,4.38-12.72,4.38h-25.53v-2.45h0Zm63.96-32.34c0-1.93,.97-2.89,2.89-2.89h8.37c1.93,0,2.89,.97,2.89,2.89v6.26h-14.16v-6.26h0Zm-49.04,21.49h9.88c1.93,0,2.89-.96,2.89-2.89V31.21c0-1.93-.96-2.89-2.89-2.89h-9.88v24.39h0Zm34.39-3.8c0,5.56,1.46,9.8,4.38,12.72,2.92,2.92,7.16,4.38,12.72,4.38h16.92l7.07-5.3v-7.67c-8.92,0-17.29-.04-26.21,0h0v-6.57h28.03v-14.34c0-11.4-5.7-17.1-17.1-17.1h-8.71c-5.56,0-9.8,1.46-12.72,4.38-2.92,2.92-4.38,7.16-4.38,12.72v16.79h0Zm49.95,0V.36h16.26V15.02l14.17,.08v13.17h-14.17v24.48h0c5.48-.02,9.58,0,15.07,0v7.94l-7.07,5.3h-7.17c-5.56,0-9.8-1.46-12.72-4.38-2.92-2.92-4.38-7.16-4.38-12.72Z"/>
+            <svg class="logo" width="80" height="45" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <style>
+                        .st0 {
+                            fill: #fff;
+                        }
+                    </style>
+                </defs>
+                <path class="st0" d="M474.98,712.8c0-8.83,30.32-35.22,61.96-43.81-15.4-.36-69.36,28.17-69.36,45.84,0,9.43,11.46,11.7,19.34,11.7,32.59,0,92.04-25.55,92.04-51.69,0-13.25-13.97-17.67-27.46-21.37-12.06-3.34-23.52-6.33-23.52-13.25,0-12.3,35.1-31.99,50.38-33.66,1.55-.12,3.1-.24,4.42-.24,4.53,0,7.76,1.07,7.16,4.89-1.55,10.86-24.83,24.24-29.73,24.24-.72,0-1.43,0-1.43-.72,0-1.67.72-4.18,2.51-6.21-2.39,1.43-7.04,6.57-7.04,11.46,0,2.63,3.58,3.58,5.97,3.58,12.66,0,33.43-15.4,33.67-29.61.12-9.19-7.16-11.82-18.03-11.46-17.43.6-55.99,16.59-55.99,36.65,0,10.5,16.24,12.65,30.56,16.59,11.7,3.22,21.61,7.64,21.61,15.04,0,18.03-58.26,46.8-87.03,46.8-3.82,0-10.03-.12-10.03-4.77h0ZM610.62,690.23c-.48,1.79-.95,3.22-.95,4.42,0,2.15,2.27,4.66,3.94,5.61.83.48,1.43.72,2.03.72,7.16,0,26.62-19.94,37.01-31.28.36-.36-.24-1.31-.83-.72-7.4,6.92-24.47,23.28-31.99,25.43,0-.95.48-2.39,1.19-4.06,3.58-7.64,14.33-20.65,14.92-19.46.48-1.43-3.58-8-5.97-6.81-2.98,1.67-10.74,9.19-12.89,11.1-6.21,5.25-22.92,17.31-26.86,18.62-.36.12-.6.12-.84,0-1.07-.6,7.88-15.64,19.22-25.31,7.76-6.57,16.47-11.58,23.4-11.94,3.58-.24,5.85,1.55,5.85,5.13,0,1.79-.72,3.22-1.31,4.3-.12.12.12.24.36.12,1.2-1.55,2.27-3.58,2.27-5.61,0-5.61-5.97-7.52-10.5-7.52-21.97,0-49.3,26.62-49.3,39.64,0,2.39,3.1,6.92,5.25,8,.24.12.83.36,1.07.36,5.01,0,28.29-20.06,31.88-23.64-2.27,2.98-5.49,8.47-6.92,12.89h0ZM642.47,700.98c7.4-.6,26.38-20.06,36.77-31.28.36-.36-.24-1.31-1.08-.72-7.28,7.04-24.71,23.64-31.99,25.55,1.43-4.89,17.79-32.11,22.68-31.64.95.12,1.55.72,1.55.24,0-2.98-4.78-7.76-7.52-7.76-.48,0-1.19.12-1.79.72-7.64,6.09-24.95,32.11-24.95,39.04,0,2.15,2.98,5.13,4.89,5.73.6.12.95.12,1.43.12h0ZM673.99,637.11c-3.1.95-7.64,8.72-7.52,12.18.12,2.15,2.63,4.66,4.3,2.51,1.43-2.03,6.92-6.92,8.95-7.76,1.31-.6,2.27-.12,2.51-.12.48,0-.24-1.79-1.31-2.98-1.55-1.79-4.18-4.18-6.92-3.82h0ZM684.36,655.73c-14.56,22.8-20.06,34.38-20.06,37.96,0,1.31.24,1.55.36,1.79.72,1.79,3.34,4.3,4.3,4.78,1.08.6,2.27,1.07,3.82.48,7.16-2.63,27.93-24.35,33.78-31.04.36-.36-.12-1.31-.84-.72-7.04,6.44-26.86,25.9-31.99,25.31,2.86-7.64,11.82-22.8,22.21-38.56,5.97-8.71,10.86-15.76,16-22.32,5.25-6.45,13.01-17.67,17.19-15.76,2.27,1.31-2.51-5.61-9.19-5.25-1.07,0-2.63.95-4.42,2.39-2.98,2.39-6.33,6.21-9.91,10.86-6.21,8.12-13.85,18.5-21.25,30.08h0ZM696.9,700.98c7.4-.6,26.38-20.06,36.77-31.28.36-.36-.24-1.31-1.08-.72-7.28,7.04-24.71,23.64-31.99,25.55,1.43-4.89,17.79-32.11,22.68-31.64.95.12,1.55.72,1.55.24,0-2.98-4.77-7.76-7.52-7.76-.48,0-1.19.12-1.79.72-7.64,6.09-24.95,32.11-24.95,39.04,0,2.15,2.98,5.13,4.9,5.73.6.12.95.12,1.43.12h0ZM728.41,637.11c-3.11.95-7.64,8.72-7.52,12.18.12,2.15,2.63,4.66,4.3,2.51,1.43-2.03,6.92-6.92,8.95-7.76,1.31-.6,2.27-.12,2.5-.12.48,0-.24-1.79-1.31-2.98-1.55-1.79-4.18-4.18-6.92-3.82h0ZM779.27,661.34c1.55-1.31-2.27-7.76-5.13-7.76-4.06,0-25.07,16.12-38.44,29.25-2.51,2.39-4.78,4.78-6.09,6.69,1.79-3.34,8-12.18,13.61-19.58,3.58-4.66,8-9.67,9.55-9.55.95.12,1.43.72,1.43.24,0-2.98-4.54-7.64-7.52-7.64-.36,0-1.07.12-1.55.6-3.11,2.39-8.36,8.72-12.66,14.8-3.94,5.49-8.48,12.53-11.34,18.14-2.98,5.49-3.58,8.72-3.34,9.55.95,3.46,3.82,7.28,7.4,6.44-1.79-.83-.96-4.06,2.27-7.88,1.31-1.67,2.75-3.46,4.3-5.01,8.83-9.55,26.38-24,36.17-28.41-6.21,5.61-20.05,25.55-20.05,32.35,0,1.31.83,3.1,2.15,4.66,1.19,1.43,2.51,2.51,3.7,2.51,7.16,0,26.62-19.7,37.01-31.04.36-.36-.24-1.31-.95-.72-7.64,7.16-24.71,23.52-32.23,25.55.24-5.61,18.74-30.8,21.73-33.19h0ZM825.68,676.63c2.03-4.06,2.63-3.7,2.98-3.34.48-1.43-4.54-7.88-6.8-6.8-2.03.95-3.82,2.75-12.06,9.67-3.94,3.34-9.55,7.76-15.28,11.58-5.25,3.46-10.03,6.57-10.5,6.09-1.19-.95,7.52-15.64,18.86-25.31,7.88-6.57,16.47-11.58,23.4-11.94,3.58-.24,5.85,1.55,5.85,5.13,0,1.79-.72,3.22-1.19,4.3-.12.12,0,.24.24.12,1.07-1.55,2.27-3.58,2.27-5.61,0-5.61-5.97-7.52-10.63-7.52-21.85,0-49.3,26.62-49.3,39.64,0,2.39,2.98,6.69,5.13,8,.36.24.95.36,1.19.36,2.51,0,9.55-5.13,16.36-10.39,6.69-5.25,13.25-11.1,15.04-12.77,2.27-2.03,5.25-4.18,5.13-4.06,0,0-10.03,18.03-12.66,22.56-27.46,13.13-50.97,32.47-55.75,47.63-.6,1.79-.83,3.34-.83,4.66,0,5.01,3.7,7.04,8.12,7.04,1.31,0,2.63-.12,3.94-.48,22.92-6.09,42.62-36.05,57.9-62.68,3.7-1.55,7.52-3.22,11.34-4.77,1.67-.6-.24-.96-2.15-.36-2.63.84-5.25,1.79-7.88,2.75l7.28-13.49h0ZM761.22,746.46c-1.91.95-3.94,1.67-5.61,1.67-1.55,0-2.63-.6-2.63-2.27,0-1.19.6-2.87,1.91-5.25,8.36-15.52,24.95-29.13,46.68-40.59-12.18,19.7-26.38,38.92-40.35,46.44h0ZM994.13,615.74c0-9.19-7.28-13.61-17.67-13.61-40.23,0-110.79,57.06-108.4,98.85.72,14.56,11.82,20.17,24.59,20.41,26.14.6,71.15-29.72,92.16-50.26.48-.24-.84-.84-.95-.72-28.29,22.92-64.82,43.1-87.27,43.1-9.19,0-16.59-2.75-17.43-12.77-2.63-33.31,61.72-95.62,98.49-95.62,7.4,0,12.06,3.1,12.06,8.47,0,9.67-18.86,20.3-26.98,20.3-.72-.95,2.87-5.37,2.63-5.37-1.19,0-6.81,5.25-6.81,8.12,0,3.7,1.91,7.64,5.01,7.64,11.7,0,30.56-16.59,30.56-28.53h0ZM993.43,655.73c-14.56,22.8-20.05,34.38-20.05,37.96,0,1.31.24,1.55.36,1.79.72,1.79,3.34,4.3,4.3,4.78,1.07.6,2.27,1.07,3.82.48,7.16-2.63,27.94-24.35,33.78-31.04.36-.36-.12-1.31-.83-.72-7.04,6.44-26.86,25.9-32,25.31,2.87-7.64,11.82-22.8,22.21-38.56,5.97-8.71,10.86-15.76,16-22.32,5.25-6.45,13.01-17.67,17.19-15.76,2.27,1.31-2.51-5.61-9.19-5.25-1.08,0-2.63.95-4.42,2.39-2.98,2.39-6.33,6.21-9.91,10.86-6.21,8.12-13.85,18.5-21.25,30.08h0ZM1031.48,689.28c-.6,1.79-1.31,3.94-1.31,5.13,0,2.15,2.39,4.9,4.3,5.85.6.48,1.31.72,1.91.72,7.16,0,26.62-19.94,37.01-31.28.36-.36-.24-1.31-.95-.72-7.28,6.92-24.23,23.16-31.75,25.43,0-3.34,4.42-11.82,10.39-19.82,3.94-5.25,7.28-9.55,9.07-11.46,1.55-1.67,3.11-2.75,3.94-2.75,1.08.12,1.43.72,1.43.24,0-2.98-4.53-7.64-7.4-7.64-.48,0-1.07.12-1.67.6-6.8,5.25-15.64,15.64-21.85,21.73-5.73,5.49-17.91,16.24-23.64,18.62,0-3.46,5.97-13.85,12.06-21.85,4.06-5.25,9.07-11.46,10.86-11.22,1.07.12,1.55.72,1.55.24,0-3.11-4.66-7.76-7.52-7.76-.36,0-1.08.12-1.67.72-2.98,2.39-8,8.12-12.18,13.97-6.8,9.43-13.37,21.49-13.37,26.62,0,2.87,3.7,6.09,5.61,6.09h.95c7.16-1.43,23.16-18.62,35.22-30.92-4.42,5.49-8.95,13.97-10.98,19.46h0ZM1108.52,631.02c7.28-9.07,12.66-14.33,15.88-12.66,2.27,1.31-2.39-5.73-9.07-5.73-1.08,0-2.63.84-4.54,2.15-5.61,4.66-10.27,10.39-14.44,16-12.3,16.35-27.1,38.08-33.78,53-3.46,7.88-3.7,11.46-3.34,12.41.83,1.91,3.22,4.42,4.3,4.78,1.19.72,2.39,1.19,3.82.6-5.37-.6-.48-7.52,2.98-12.53,12.42-18.27,36.29-30.8,38.32-30.68-1.08,5.97-22.8,37.72-34.86,37.72-2.39,0-4.53-2.27-4.53-3.46,0-.36-.48-.12-.48.48,0,3.94,5.25,7.04,9.91,7.04,16.47,0,39.63-29.01,39.63-39.75,0-1.67-4.18-6.21-5.61-6.8-6.45-2.27-27.46,13.97-36.77,25.43,9.19-17.67,20.77-33.19,32.59-47.99h0Z"/>
+                <path class="st0" d="M523.37,415.58l-1.72,1.55c-4.3,3.96-4.99,3.79-10.67,3.79h-78.79c-5.68,0-6.36.17-10.67-3.79l-1.72-1.55h-1.38l-2.41,31.74h2.69c6.02-21.33,15.2-20.78,34.99-20.78h10.32v79.01c0,21.33-1.03,27.01-24.08,29.76v2.58h63.31v-2.58c-23.05-2.75-24.08-8.43-24.08-29.76v-79.01h10.32c19.78,0,28.95-.56,34.97,20.78h2.63l-2.33-31.74h-1.38ZM543.78,535.32v2.58h95.09c2.07-11.88,3.7-21.84,5.85-34.06h-2.79c-4.3,21.68-14.2,28.45-35.88,28.45-28.21,0-25.81-12.62-25.81-22.77v-28.21h17.89c12.9,0,22.36.17,24.6,15.31h2.58v-38.36h-2.58c-1.89,14.8-11.7,15.83-24.6,15.83h-17.89v-47.53h16.69c17.38,0,33.38-1.33,34.58,20.86h2.58l2.06-26.49h-92.38v2.58c20.64,2.75,20.82,7.91,21.33,25.63v60.56c-.52,17.72-.69,22.88-21.33,25.63h0ZM772.74,511.08l-84.67-90.16h-26.3v2.58c18.72,3.91,22.16,13.58,22.16,28.6v28.32c0,39.05,1.21,52.5-22.01,54.91v2.58h50.62v-2.58c-24.95-4.99-22.63-13.42-22.88-54.65v-33.06c29.17,31.24,56.64,60.7,87.01,93.56h1.8v-92.85c0-16.08,1.07-23.34,16.61-24.83v-2.58h-43.69v2.58c18.5,0,21.35,9.93,21.35,25.18v62.4h0ZM817.03,420.91l-2.75,33.89h2.75c1.89-9.29,6.19-20.99,15.31-25.12,8.43-3.79,27.82-3.14,37.28-3.14h15.87l-65.19,94.66-11.35,15.48.69,1.21h99.24c2.8-15.86,3.5-20.49,6.28-36.5h-2.78c-2.92,10.1-4.82,20.65-18.86,27.32-12.56,5.16-30.7,3.56-44.12,3.56h-16.01l75.84-110.17-.86-1.2h-91.35ZM1062.16,479.41c0-30.62-19.1-60.56-63.14-60.56-35.96,0-62.79,23.74-62.79,60.38s26.66,60.73,62.96,60.73,62.97-23.57,62.97-60.55h0ZM956.19,475.1c0-23.22,11.87-52.13,41.46-52.13,26.32,0,44.04,28.9,44.56,59.35,0,24.6-12.56,53.5-40.95,53.5-30.97,0-45.07-34.06-45.07-60.73h0ZM1111.29,478.37v-51.83c18.06-.17,35.78,5.55,35.78,25.68,0,19.09-19.27,25.98-35.78,26.15h0ZM1096.16,455.7v53.98c-.52,17.72-.69,22.88-21.33,25.63v2.58h56.87v-2.58c-23.57-3.27-20.4-10.58-20.4-25.63v-26.21c5.02-.31,18.8-2.4,25.45,11.38,3.61,7.4,12.23,21.88,23.58,33.75,9.98,10.32,26.22,11.5,41.63,10.67l-.04-2.72c-28.39-5.85-44.35-35.3-57.6-58.52l-.86-1.2c12.39-5.51,21.33-13.76,21.33-28.21,0-8.26-2.8-27.61-46.79-27.61h-41.98v2.7c19.27,1.72,20.13,5.68,20.13,32h0Z"/>
+                <path class="st0" d="M895.13,155.07h-192.81s-.02,126.95.13,131.77c.02.77.02,1.63.02,2.55-.02,10.31-.04,31.31,29.59,42.32l13.67,5.25c22.3,8.44,23.94,9.01,50.43,19.01l2.56.83,2.56-.83c26.5-10,28.13-10.57,50.43-19.01l13.67-5.25c29.64-11.01,29.61-32.01,29.59-42.32,0-.92,0-1.78.02-2.55.14-4.82.13-131.77.13-131.77h0ZM888.62,286.66c-.03.83-.03,1.75-.03,2.74.02,10.01-.06,26.94-25.52,36.41l-13.68,5.26c-21.86,8.4-23.9,9.21-50.24,18.94l-.39.13h-.04s-.04,0-.04,0l-.4-.13c-26.34-9.73-28.39-10.54-50.24-18.94l-13.68-5.26c-25.47-9.46-25.54-26.39-25.52-36.41,0-.99,0-1.91-.02-2.74.11-6.46.07-105.67.09-125.26h179.62c.02,19.59-.01,118.8.09,125.26h0Z"/>
+                <path class="st0" d="M792.76,208.8c0-5.34,1.3-32.91-28.87-32.91h-42.38v36.07l10.62,9.7v-34.88h32c19.19,0,17.93,18.1,17.93,21.88v109.68s-31.07-11.47-40.5-15.66c-2.86-1.48-9.43-3.92-9.43-18.1v-26.75l-.12-.11-10.5-9.56v36.78c0,21.9,12.94,26.62,18.16,28.59,9.56,3.64,53.07,20.21,53.07,20.21v-124.96h0Z"/>
+                <path class="st0" d="M804.69,208.8c0-5.34-1.3-32.91,28.87-32.91h42.38v36.07l-10.62,9.7v-34.88h-32c-19.19,0-17.93,18.1-17.93,21.88v109.68s31.07-11.47,40.5-15.66c2.86-1.48,9.43-3.92,9.43-18.1v-26.75l.12-.11,10.5-9.56v36.78c0,21.9-12.95,26.62-18.17,28.59-9.56,3.64-53.07,20.21-53.07,20.21v-124.96h0Z"/>
+                <polygon class="st0" points="753.78 263.76 760.31 263.76 760.31 237.27 767.86 237.27 767.86 231.64 767.36 231.64 766.91 231.64 757.1 231.64 746.79 231.64 746.28 231.64 746.28 237.27 753.78 237.27 753.78 263.76 753.78 263.76"/>
+                <path class="st0" d="M849.77,237.27v-5.58h-.33c-3.23,0-6.08.39-8.53,1.11-.39.11-.78.28-1.12.39-2.01.73-3.79,1.79-5.24,3.07-1.79,1.62-3.07,3.51-3.85,5.69-.56,1.73-.89,3.68-.89,5.74s.33,3.85.89,5.52c.44,1.17,1,2.23,1.73,3.24.33.5.73.95,1.12,1.39.39.44.84.83,1.28,1.28h.06c1.39,1.22,3.01,2.23,4.91,2.95.45.17.89.34,1.39.5,2.4.73,5.19,1.12,8.25,1.12h.33v-5.63h-.22c-.05,0-.09-.01-.14-.01-1.21.03-2.49-.08-3.79-.36-.07-.01-.12-.04-.19-.05-4.52-1.05-8.7-4.04-8.7-9.71,0-.08,0-.38,0-.46.12-10.3,12.11-10.08,13.02-10.2h0Z"/>
             </svg>
-            <h1>Календарь событий</h1>
+            <h1>Tenzor Sailing Club</h1>
             <p>Июль 2025</p>
         </div>
 
         <div class="filters">
             <button class="filter-btn active" data-sport="all">Все</button>
-            <button class="filter-btn" data-sport="football">⚽ Футбол</button>
-            <button class="filter-btn" data-sport="basketball">🏀 Баскетбол</button>
-            <button class="filter-btn" data-sport="tennis">🎾 Теннис</button>
-            <button class="filter-btn" data-sport="formula1">🏎️ Ф1</button>
-            <button class="filter-btn" data-sport="hockey">🏒 Хоккей</button>
+            <button class="filter-btn" data-sport="pestovo">⛵ Кубок Пестово</button>
+            <button class="filter-btn" data-sport="tec">🏆 TEC</button>
+            <button class="filter-btn" data-sport="intensive">🌊 Интенсив</button>
         </div>
 
         <div class="calendar">
@@ -361,742 +395,83 @@
                 </div>
             </div>
 
-            <div class="cta-button">
-                <a href="https://lil.bet/ru/line" target="_blank">
-                    ⚡ Заlilбись! ⚡
-                </a>
-            </div>
+            <a href="https://wa.me/+79299513777" class="register-btn" target="_blank">
+                Записаться
+            </a>
         </div>
     </div>
 
     <script>
         // Данные событий для июля 2025
         const events = {
-            1: [
-                {
-                    sport: 'football',
-                    title: 'Клубный чемпионат мира',
-                    details: 'Реал Мадрид — Ювентус',
-                    time: '22:00',
-                    url: 'https://refpa767518.top/L?tag=d_3868130m_94911c_&site=3868130&ad=94911&r=line/football/32015-club-world-cup/267834212-real-madrid-juventus'
-                },
-                {
-                    sport: 'tennis',
-                    title: 'Уимблдон (мужчины)',
-                    details: 'Мюллер — Джокович',
-                    time: '15:30',
-                    url: 'https://refpa767518.top/L?tag=d_3868130m_94911c_&site=3868130&ad=94911&r=line/tennis/69371-wimbledon/268017116-alexandre-muller-novak-djokovic'
-                },
-                {
-                    sport: 'tennis',
-                    title: 'Уимблдон',
-                    details: 'Димитров — Нишиока',
-                    time: '17:30',
-                    url: 'https://refpa767518.top/L?tag=d_3868130m_94911c_&site=3868130&ad=94911&r=line/tennis/69371-wimbledon/268017112-grigor-dimitrov-yoshihito-nishioka'
-                },
-                {
-                    sport: 'basketball',
-                    title: 'WNBA Commissioner\'s Cup',
-                    details: 'Чемпионат',
-                    time: '02:00',
-                    url: 'https://lil.bet/ru/line/basketball/197289-wnba'
-                }
-            ],
-            2: [
-                {
-                    sport: 'football',
-                    title: 'Чемпионат Мира (клубы)',
-                    details: 'Боруссия Дортмунд — КФ Монтеррей',
-                    time: '04:00',
-                    url: 'https://refpa767518.top/L?tag=d_3868130m_94911c_&site=3868130&ad=94911&r=line/football/32015-club-world-cup/267693048-borussia-dortmund-monterrey'
-                },
-                {
-                    sport: 'tennis',
-                    title: 'Уимблдон (женщины)',
-                    details: 'Арина Соболенко — Мари Боузкова',
-                    time: '10:00',
-                    url: 'https://lil.bet/ru/line/tennis/69423-wimbledon-women/268342190-aryna-sabalenka-marie-bouzkova'
-                },
-                {
-                    sport: 'football',
-                    title: 'Чемпионат Японии',
-                    details: 'Виссел Кобе — Хиросима',
-                    time: '13:00'
-                },
-                {
-                    sport: 'tennis',
-                    title: 'Wimbledon',
-                    details: 'Рублев — Харрис',
-                    time: '10:00',
-                    url: 'https://lil.bet/en/line/tennis/69371-wimbledon/268342653-andrey-rublev-lloyd-harris'
-                }
-            ],
-            3: [
-                {
-                    sport: 'football',
-                    title: 'Кубок КОНКАКАФ 2025',
-                    details: 'США — Гватемала',
-                    time: '02:00',
-                    url: 'https://lil.bet/ru/line/football/972093-concacaf-gold-cup/268237936-usa-guatemala'
-                },
-                {
-                    sport: 'tennis',
-                    title: 'Wimbledon',
-                    details: '1/32 финала',
-                    time: '14:00',
-                    url: 'https://lil.bet/ru/line/tennis/69371-wimbledon'
-                }
-            ],
-            4: [
-                {
-                    sport: 'football',
-                    title: 'Клубный чемпионат мира 2025',
-                    details: 'Флуминенсе — Аль-Хилаль',
-                    time: '22:00',
-                    url: 'https://lil.bet/ru/line/football/32015-club-world-cup/268380933-fluminense-al-hilal-riyadh'
-                },
-                {
-                    sport: 'football',
-                    title: 'МЛС 2025',
-                    details: 'Нью-Йорк Сити — Торонто',
-                    time: '02:30',
-                    url: 'https://lil.bet/ru/line/football/828065-usa-mls/268095696-new-york-city-toronto'
-                },
-                {
-                    sport: 'football',
-                    title: 'Премьер-лига Казахстана',
-                    details: 'Кайрат — Туран',
-                    time: '18:00',
-                    url: 'https://lil.bet/ru/line/football/33021-kazakhstan-premier-league/268323398-kairat-turan-turkistan'
-                },
-                {
-                    sport: 'tennis',
-                    title: 'Wimbledon',
-                    details: '1/16 финала',
-                    time: '14:00',
-                    url: 'https://lil.bet/ru/line/tennis/69371-wimbledon'
-                },
-                {
-                    sport: 'hockey',
-                    title: 'Australia. AIHL',
-                    details: 'Melbourne Ice — Melbourne Mustangs',
-                    time: '09:30'
-                }
-            ],
             5: [
                 {
-                    sport: 'football',
-                    title: 'Клубный чемпионат мира 2025',
-                    details: 'Палмейрас — Челси',
-                    time: '04:00',
-                    url: 'https://lil.bet/ru/line/football/32015-club-world-cup/268102193-sociedade-esportiva-palmeiras-chelsea'
-                },
-                {
-                    sport: 'football',
-                    title: 'Клубный чемпионат мира 2025',
-                    details: 'ПСЖ — Бавария',
-                    time: '19:00',
-                    url: 'https://lil.bet/ru/line/football/32015-club-world-cup/268220966-paris-saint-germain-bayern-munich'
-                },
-                {
-                    sport: 'tennis',
-                    title: 'Wimbledon',
-                    details: '1/16 финала',
-                    time: '14:00',
-                    url: 'https://lil.bet/ru/line/tennis/69371-wimbledon'
-                },
-                {
-                    sport: 'hockey',
-                    title: 'New Zealand Championship. NZIHL',
-                    details: 'West Auckland Admirals — Botany Swarm',
-                    time: '04:45'
-                },
-                {
-                    sport: 'hockey',
-                    title: 'Australia. AIHL',
-                    details: 'Adelaide Adrenaline — Brisbane Lightning',
-                    time: '06:45'
-                },
-                {
-                    sport: 'hockey',
-                    title: 'Australia. AIHL',
-                    details: 'Canberra Brave — Central Coast Rhinos',
-                    time: '07:00'
-                },
-                {
-                    sport: 'hockey',
-                    title: 'Australia. AIHL',
-                    details: 'Melbourne Ice — Newcastle North Stars',
-                    time: '07:00'
-                },
-                {
-                    sport: 'basketball',
-                    title: 'FIBA Women\'s AmeriCup',
-                    details: 'Полуфинал 1',
-                    time: '22:00'
-                },
-                {
-                    sport: 'basketball',
-                    title: 'FIBA Women\'s AmeriCup',
-                    details: 'Полуфинал 2',
-                    time: '00:30'
-                },
-                {
-                    sport: 'basketball',
-                    title: 'FIBA U19 Men\'s World Cup',
-                    details: 'Полуфинал 1',
-                    time: '17:00'
-                },
-                {
-                    sport: 'basketball',
-                    title: 'FIBA U19 Men\'s World Cup',
-                    details: 'Полуфинал 2',
-                    time: '19:30'
-                }
-            ],
-            6: [
-                {
-                    sport: 'formula1',
-                    title: 'Британский Гран‑При',
-                    details: 'Формула 1 • Сильверстоун, Великобритания',
-                    time: '16:00',
-                    url: 'https://lil.bet/ru/line/formula-1/72623-british-grand-prix-race/268186901-british-grand-prix-race-winner'
-                },
-                {
-                    sport: 'football',
-                    title: 'МЛС 2025',
-                    details: 'Монреаль Импакт — Интер Майами',
-                    time: '02:30',
-                    url: 'https://lil.bet/ru/line/football/828065-usa-mls/268095705-cf-montreal-inter-miami'
-                },
-                {
-                    sport: 'football',
-                    title: 'МЛС 2025',
-                    details: 'Ди Си Юнайтед — Атланта Юнайтед',
-                    time: '02:30',
-                    url: 'https://lil.bet/ru/line/football/828065-usa-mls/268095706-dc-united-atlanta-united'
-                },
-                {
-                    sport: 'tennis',
-                    title: 'Wimbledon',
-                    details: '1/8 финала',
-                    time: '14:00',
-                    url: 'https://lil.bet/ru/line/tennis/69371-wimbledon'
-                },
-                {
-                    sport: 'hockey',
-                    title: 'Australia. AIHL',
-                    details: 'Melbourne Mustangs — Newcastle North Stars',
-                    time: '04:00'
-                },
-                {
-                    sport: 'hockey',
-                    title: 'New Zealand Championship. NZIHL',
-                    details: 'West Auckland Admirals — Botany Swarm',
-                    time: '05:30'
-                },
-                {
-                    sport: 'hockey',
-                    title: 'Australia. AIHL',
-                    details: 'Adelaide Adrenaline — Brisbane Lightning',
-                    time: '06:45'
-                },
-                {
-                    sport: 'basketball',
-                    title: 'FIBA Women\'s AmeriCup',
-                    details: 'Финал',
-                    time: '22:00'
-                },
-                {
-                    sport: 'basketball',
-                    title: 'FIBA U19 Men\'s World Cup',
-                    details: 'Финал',
-                    time: '18:00'
-                }
-            ],
-            7: [
-                {
-                    sport: 'tennis',
-                    title: 'Wimbledon',
-                    details: '1/8 финала',
-                    time: '14:00',
-                    url: 'https://lil.bet/ru/line/tennis/69371-wimbledon'
-                }
-            ],
-            8: [
-                {
-                    sport: 'football',
-                    title: 'Лига Чемпионов 2025/26',
-                    details: 'Олимпия — Кайрат • 2-й квалификационный раунд',
-                    time: '20:00',
-                    url: 'https://lil.bet/ru/line/football/118587-uefa-champions-league/267293270-olimpija-ljubljana-kairat'
-                },
-                {
-                    sport: 'football',
-                    title: 'Клубный чемпионат мира 2025',
-                    details: 'Полуфинал 1 • Red Bull Arena',
-                    time: '22:00'
-                },
-                {
-                    sport: 'tennis',
-                    title: 'Wimbledon',
-                    details: '1/4 финала',
-                    time: '14:00',
-                    url: 'https://lil.bet/ru/line/tennis/69371-wimbledon'
-                }
-            ],
-            9: [
-                {
-                    sport: 'football',
-                    title: 'Клубный чемпионат мира 2025',
-                    details: 'Полуфинал 2 • Levi\'s Stadium',
-                    time: '22:00'
-                },
-                {
-                    sport: 'tennis',
-                    title: 'Wimbledon',
-                    details: '1/4 финала',
-                    time: '14:00',
-                    url: 'https://lil.bet/ru/line/tennis/69371-wimbledon'
+                    sport: 'pestovo',
+                    title: 'Кубок Пестово - 5-й этап',
+                    details: 'Парусные гонки • Пестово'
                 }
             ],
             10: [
                 {
-                    sport: 'football',
-                    title: 'Лига Конференций 2025/26',
-                    details: 'Торпедо Кутаиси — Ордабасы • 1-й квалиф. раунд',
-                    time: '19:00',
-                    url: 'https://lil.bet/ru/line/football/2252762-uefa-conference-league/267861427-torpedo-kutaisi-ordabasy'
-                },
-                {
-                    sport: 'tennis',
-                    title: 'Wimbledon',
-                    details: '1/4 финала',
-                    time: '14:00',
-                    url: 'https://lil.bet/ru/line/tennis/69371-wimbledon'
+                    sport: 'tec',
+                    title: 'Tenzor Elite Cup - 2-й этап',
+                    details: 'День 1 • Тренировочный день'
                 }
             ],
             11: [
                 {
-                    sport: 'tennis',
-                    title: 'Wimbledon',
-                    details: 'Полуфиналы',
-                    time: '14:00',
-                    url: 'https://lil.bet/ru/line/tennis/69371-wimbledon'
+                    sport: 'tec',
+                    title: 'Tenzor Elite Cup - 2-й этап',
+                    details: 'День 2 • Гонки'
                 }
             ],
             12: [
                 {
-                    sport: 'football',
-                    title: 'Суперкубок России 2025/26',
-                    details: 'Краснодар — ЦСКА • Финал',
-                    time: '18:00',
-                    url: 'https://lil.bet/ru/line/football/213339-russian-super-cup/266318097-krasnodar-cska-moscow'
-                },
-                {
-                    sport: 'football',
-                    title: 'Чемпионат Бразилии (Серия A)',
-                    details: 'Фламенго — Сан-Паулу',
-                    time: '23:00',
-                    url: 'https://lil.bet/ru/line/football/1268397-brazil-campeonato-brasileiro-serie-a/265313903-flamengo-sao-paulo'
-                },
-                {
-                    sport: 'football',
-                    title: 'Чемпионат Бразилии (Серия A)',
-                    details: 'Сантос — Палмейрас',
-                    time: '01:30',
-                    url: 'https://lil.bet/ru/line/football/1268397-brazil-campeonato-brasileiro-serie-a/265313909-santos-sociedade-esportiva-palmeiras'
-                },
-                {
-                    sport: 'football',
-                    title: 'Премьер-лига Казахстан 2025',
-                    details: 'Ордабасы — Астана',
-                    time: '18:00'
-                },
-                {
-                    sport: 'tennis',
-                    title: 'Wimbledon',
-                    details: 'Финал (женщины)',
-                    time: '15:00'
-                },
-                {
-                    sport: 'basketball',
-                    title: 'FIBA U19 Women\'s World Cup',
-                    details: 'Финал',
-                    time: '17:00'
+                    sport: 'tec',
+                    title: 'Tenzor Elite Cup - 2-й этап',
+                    details: 'День 3 • Гонки'
                 }
             ],
             13: [
                 {
-                    sport: 'football',
-                    title: 'МЛС 2025',
-                    details: 'Интер Майами — Нэшвилл',
-                    time: '02:30'
-                },
+                    sport: 'tec',
+                    title: 'Tenzor Elite Cup - 2-й этап',
+                    details: 'День 4 • Финальные гонки и награждение'
+                }
+            ],
+            14: [
                 {
-                    sport: 'football',
-                    title: 'Аргентинская Примера 2025',
-                    details: 'Ривер Плейт — Платенсе',
-                    time: '23:00',
-                    url: 'https://lil.bet/ru/line/football/119599-argentina-primera-division/264476202-river-plate-buenos-aires-platense'
-                },
-                {
-                    sport: 'football',
-                    title: 'Товарищеский матч',
-                    details: 'Престон — Ливерпуль',
-                    time: '17:00'
-                },
-                {
-                    sport: 'tennis',
-                    title: 'Wimbledon',
-                    details: 'Финал (мужчины)',
-                    time: '15:00'
+                    sport: 'intensive',
+                    title: 'Интенсив: Грибанов + Носов',
+                    details: 'День 1 • Теория и практика парусного спорта'
                 }
             ],
             15: [
                 {
-                    sport: 'football',
-                    title: 'Лига Чемпионов 2025/26',
-                    details: 'Кайрат — Олимпия • 2-й квалификационный раунд',
-                    time: '18:00'
+                    sport: 'intensive',
+                    title: 'Интенсив: Грибанов + Носов',
+                    details: 'День 2 • Продвинутые техники'
                 }
             ],
             16: [
                 {
-                    sport: 'football',
-                    title: 'Лига Чемпионов 2025/26',
-                    details: 'Динамо Минск — Лудогорец • 2-й квалиф. раунд',
-                    time: '21:45'
-                }
-            ],
-            17: [
-                {
-                    sport: 'football',
-                    title: 'Лига Конференций 2025/26',
-                    details: 'Ордабасы — Торпедо Кутаиси • 1-й квалиф. раунд',
-                    time: '19:00'
-                }
-            ],
-            18: [
-                {
-                    sport: 'football',
-                    title: 'Россия. Премьер-лига 2025/26',
-                    details: 'Торпедо — ЦСКА',
-                    time: '19:00'
-                },
-                {
-                    sport: 'football',
-                    title: 'Россия. Премьер-лига 2025/26',
-                    details: 'Зенит — Ростов',
-                    time: '21:30'
-                },
-                {
-                    sport: 'basketball',
-                    title: 'WNBA All-Star Weekend',
-                    details: 'Skills Challenge & 3-Point Contest',
-                    time: '02:00'
+                    sport: 'intensive',
+                    title: 'Интенсив: Грибанов + Носов',
+                    details: 'День 3 • Практические занятия на воде'
                 }
             ],
             19: [
                 {
-                    sport: 'football',
-                    title: 'Премьер-лига Казахстан 2025',
-                    details: 'Кайрат — Кайсар',
-                    time: '18:00'
-                },
-                {
-                    sport: 'hockey',
-                    title: 'Australia. AIHL',
-                    details: 'Adelaide Adrenaline — Melbourne Mustangs',
-                    time: '07:15'
-                },
-                {
-                    sport: 'basketball',
-                    title: 'FIBA Women\'s Asia Cup',
-                    details: 'Полуфинал 1',
-                    time: '12:00'
-                },
-                {
-                    sport: 'basketball',
-                    title: 'FIBA Women\'s Asia Cup',
-                    details: 'Полуфинал 2',
-                    time: '14:30'
-                },
-                {
-                    sport: 'basketball',
-                    title: 'FIBA U20 EuroBasket',
-                    details: 'Полуфинал 1',
-                    time: '17:00'
-                },
-                {
-                    sport: 'basketball',
-                    title: 'FIBA U20 EuroBasket',
-                    details: 'Полуфинал 2',
-                    time: '19:30'
-                },
-                {
-                    sport: 'basketball',
-                    title: 'NBA Summer League',
-                    details: 'Полуфиналы',
-                    time: '04:00'
-                },
-                {
-                    sport: 'basketball',
-                    title: 'WNBA All-Star Weekend',
-                    details: 'All-Star Game • Team Clark vs Team Collier',
-                    time: '02:00'
-                }
-            ],
-            20: [
-                {
-                    sport: 'football',
-                    title: 'МЛС 2025',
-                    details: 'Нью-Йорк Ред Буллз — Интер Майами',
-                    time: '02:30'
-                },
-                {
-                    sport: 'football',
-                    title: 'МЛС 2025',
-                    details: 'Атланта Юнайтед — Шарлотт',
-                    time: '02:30'
-                },
-                {
-                    sport: 'football',
-                    title: 'Аргентинская Примера 2025',
-                    details: 'Институто — Ривер Плейт',
-                    time: '23:00'
-                },
-                {
-                    sport: 'basketball',
-                    title: 'FIBA Women\'s Asia Cup',
-                    details: 'Финал',
-                    time: '14:00'
-                },
-                {
-                    sport: 'basketball',
-                    title: 'FIBA U20 EuroBasket',
-                    details: 'Финал',
-                    time: '18:00'
-                },
-                {
-                    sport: 'basketball',
-                    title: 'NBA Summer League',
-                    details: 'Финал',
-                    time: '04:00'
-                }
-            ],
-            21: [
-                {
-                    sport: 'football',
-                    title: 'Товарищеские матчи 2025',
-                    details: 'Спортинг — Сандерленд',
-                    time: '22:00'
-                },
-                {
-                    sport: 'tennis',
-                    title: 'Mubadala Citi DC Open',
-                    details: 'ATP 500 / WTA 500 • 1/16 финала',
-                    time: '18:00'
-                }
-            ],
-            22: [
-                {
-                    sport: 'football',
-                    title: 'Лига Чемпионов 2025/26',
-                    details: 'Бранн — Ред Булл • 3-й квалиф. раунд',
-                    time: '20:00'
-                },
-                {
-                    sport: 'tennis',
-                    title: 'Mubadala Citi DC Open',
-                    details: 'ATP 500 / WTA 500 • 1/16 финала',
-                    time: '18:00'
-                }
-            ],
-            23: [
-                {
-                    sport: 'football',
-                    title: 'Чемпионат Бразилии (Серия A)',
-                    details: 'Коринтианс — Крузейро',
-                    time: '23:00'
-                },
-                {
-                    sport: 'football',
-                    title: 'Чемпионат Бразилии (Серия A)',
-                    details: 'Сантос — Интернасьонал',
-                    time: '01:30'
-                },
-                {
-                    sport: 'football',
-                    title: 'Товарищеские матчи 2025',
-                    details: 'Арсенал — Милан',
-                    time: '14:30'
-                },
-                {
-                    sport: 'tennis',
-                    title: 'Mubadala Citi DC Open',
-                    details: 'ATP 500 / WTA 500 • 1/8 финала',
-                    time: '18:00'
-                }
-            ],
-            24: [
-                {
-                    sport: 'football',
-                    title: 'Лига Конференций 2025/26',
-                    details: 'Астана — Зимбру • 1-й квалиф. раунд',
-                    time: '17:00'
-                },
-                {
-                    sport: 'football',
-                    title: 'Товарищеские матчи 2025',
-                    details: 'Аякс — Селтик',
-                    time: '20:00'
-                },
-                {
-                    sport: 'tennis',
-                    title: 'Mubadala Citi DC Open',
-                    details: 'ATP 500 / WTA 500 • 1/8 финала',
-                    time: '18:00'
-                }
-            ],
-            25: [
-                {
-                    sport: 'football',
-                    title: 'Россия. Премьер-лига 2025/26',
-                    details: 'Рубин — Зенит',
-                    time: '19:00'
-                },
-                {
-                    sport: 'football',
-                    title: 'Россия. Премьер-лига 2025/26',
-                    details: 'Краснодар — Локомотив',
-                    time: '21:30'
-                },
-                {
-                    sport: 'tennis',
-                    title: 'Mubadala Citi DC Open',
-                    details: 'ATP 500 / WTA 500 • 1/4 финала',
-                    time: '18:00'
-                },
-                {
-                    sport: 'basketball',
-                    title: 'Arab Basketball Championship',
-                    details: 'Финал',
-                    time: '19:00'
+                    sport: 'pestovo',
+                    title: 'Кубок Пестово - 6-й этап',
+                    details: 'Парусные гонки • Пестово'
                 }
             ],
             26: [
                 {
-                    sport: 'football',
-                    title: 'МЛС 2025',
-                    details: 'Лос-Анджелес — Портленд Тимберз',
-                    time: '05:30'
-                },
-                {
-                    sport: 'football',
-                    title: 'Чемпионат Бразилии (Серия A)',
-                    details: 'Сан-Паулу — Флуминенсе',
-                    time: '23:00'
-                },
-                {
-                    sport: 'football',
-                    title: 'Чемпионат Бразилии (Серия A)',
-                    details: 'Палмейрас — Гремио',
-                    time: '01:30'
-                },
-                {
-                    sport: 'football',
-                    title: 'Премьер-лига Казахстан 2025',
-                    details: 'Тобол — Кайрат',
-                    time: '18:00'
-                },
-                {
-                    sport: 'tennis',
-                    title: 'Mubadala Citi DC Open',
-                    details: 'ATP 500 / WTA 500 • 1/2 финала',
-                    time: '18:00'
-                }
-            ],
-            27: [
-                {
-                    sport: 'formula1',
-                    title: 'Бельгийский Гран‑При',
-                    details: 'Формула 1 • Спа-Франкоршам, Бельгия',
-                    time: '15:00'
-                },
-                {
-                    sport: 'football',
-                    title: 'Китайская Суперлига 2025',
-                    details: 'Шанхай Шэньхуа — Хэнань',
-                    time: '14:35'
-                },
-                {
-                    sport: 'football',
-                    title: 'МЛС 2025',
-                    details: 'Интер Майами — Цинциннати',
-                    time: '02:00'
-                },
-                {
-                    sport: 'tennis',
-                    title: 'Mubadala Citi DC Open',
-                    details: 'ATP 500 / WTA 500 • Финал',
-                    time: '20:00'
-                }
-            ],
-            28: [
-                {
-                    sport: 'tennis',
-                    title: 'National Bank Open',
-                    details: 'ATP Masters 1000 / WTA 1000 • 1/32 финала',
-                    time: '17:00'
-                }
-            ],
-            29: [
-                {
-                    sport: 'football',
-                    title: 'Товарищеские матчи 2025',
-                    details: 'Панатинаикос — Рейнджерс',
-                    time: '20:00'
-                },
-                {
-                    sport: 'football',
-                    title: 'Товарищеские матчи 2025',
-                    details: 'Валенсия — Марсель',
-                    time: '21:30'
-                },
-                {
-                    sport: 'tennis',
-                    title: 'National Bank Open',
-                    details: 'ATP Masters 1000 / WTA 1000 • 1/32 финала',
-                    time: '17:00'
-                }
-            ],
-            30: [
-                {
-                    sport: 'tennis',
-                    title: 'National Bank Open',
-                    details: 'ATP Masters 1000 / WTA 1000 • 1/16 финала',
-                    time: '17:00'
-                }
-            ],
-            31: [
-                {
-                    sport: 'football',
-                    title: 'Лига Конференций 2025/26',
-                    details: 'Зимбру — Астана • 1-й квалиф. раунд, ответ',
-                    time: '20:00'
-                },
-                {
-                    sport: 'football',
-                    title: 'Товарищеские матчи 2025',
-                    details: 'Арсенал — Тоттенхэм • Северо-Лондонское дерби',
-                    time: '14:30'
-                },
-                {
-                    sport: 'tennis',
-                    title: 'National Bank Open',
-                    details: 'ATP Masters 1000 / WTA 1000 • 1/8 финала',
-                    time: '17:00'
+                    sport: 'pestovo',
+                    title: 'Кубок Пестово - 7-й этап',
+                    details: 'Парусные гонки • Пестово'
                 }
             ]
         };
@@ -1109,7 +484,7 @@
             const daysContainer = document.getElementById('calendar-days');
             
             // Июль 2025 начинается во вторник (день недели 2)
-            const firstDayOfWeek = 2;
+            const firstDayOfWeek = 2; // 0 = воскресенье, 1 = понедельник, 2 = вторник
             const daysInMonth = 31;
             
             // Добавляем пустые ячейки для дней предыдущего месяца
@@ -1139,8 +514,10 @@
 
         // Выбор дня
         function selectDay(day) {
+            // Убираем выделение с предыдущего дня
             document.querySelectorAll('.day').forEach(d => d.classList.remove('selected'));
             
+            // Выделяем выбранный день
             const dayElements = document.querySelectorAll('.day');
             const selectedDayElement = Array.from(dayElements).find(d => d.textContent == day);
             if (selectedDayElement) {
@@ -1154,11 +531,13 @@
         // Отображение событий
         function displayEvents(day) {
             const eventsPanel = document.getElementById('events-panel');
+            const noEvents = document.getElementById('no-events');
             
             if (!events[day] || events[day].length === 0) {
                 eventsPanel.innerHTML = `
                     <div class="no-events">
-                        <p>На ${day} июля событий нет</p>
+                        <div class="no-events-icon">⛵</div>
+                        <p>Событий на ${day} июля нет</p>
                     </div>
                 `;
                 return;
@@ -1172,6 +551,7 @@
             if (filteredEvents.length === 0) {
                 eventsPanel.innerHTML = `
                     <div class="no-events">
+                        <div class="no-events-icon">🔍</div>
                         <p>Событий этого типа на ${day} июля нет</p>
                     </div>
                 `;
@@ -1180,23 +560,26 @@
 
             const eventsHTML = filteredEvents.map(event => {
                 const sportIcons = {
-                    football: '⚽',
-                    basketball: '🏀',
-                    tennis: '🎾',
-                    formula1: '🏎️',
-                    hockey: '🏒'
+                    pestovo: '⛵',
+                    tec: '🏆',
+                    intensive: '🌊'
                 };
 
-                const eventUrl = event.url || 'https://lil.bet/ru/line';
+                // Определяем ссылку в зависимости от типа события
+                let eventLink = '#';
+                if (event.sport === 'tec') {
+                    eventLink = 'https://tenzorelitecup.com/';
+                } else if (event.sport === 'intensive' || event.sport === 'pestovo') {
+                    eventLink = 'https://wa.me/+79299513777';
+                }
 
                 return `
-                    <a href="${eventUrl}" class="event-card ${event.sport}" target="_blank">
+                    <a href="${eventLink}" class="event-card ${event.sport}" target="_blank">
                         <div class="event-header">
                             <div class="sport-icon ${event.sport}">${sportIcons[event.sport]}</div>
                             <div>
                                 <div class="event-title">${event.title}</div>
                                 <div class="event-details">${event.details}</div>
-                                <div class="event-time">🕐 ${event.time}</div>
                             </div>
                         </div>
                     </a>
@@ -1206,20 +589,26 @@
             eventsPanel.innerHTML = eventsHTML;
         }
 
-        // Фильтрация по видам спорта
+        // Фильтрация по видам мероприятий
         function initFilters() {
             const filterButtons = document.querySelectorAll('.filter-btn');
             
             filterButtons.forEach(btn => {
                 btn.addEventListener('click', () => {
+                    // Убираем активный класс со всех кнопок
                     filterButtons.forEach(b => b.classList.remove('active'));
+                    
+                    // Добавляем активный класс к выбранной кнопке
                     btn.classList.add('active');
+                    
                     currentFilter = btn.dataset.sport;
                     
+                    // Если выбран день, обновляем события
                     if (selectedDay) {
                         displayEvents(selectedDay);
                     }
                     
+                    // Обновляем индикаторы на календаре
                     updateCalendarIndicators();
                 });
             });
