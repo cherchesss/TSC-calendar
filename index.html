@@ -199,7 +199,7 @@ const monthRange = [
 const EVENTS = [
   // Детские первенства — Геленджик
   { title:"ДЕТИ • Первенство России", place:"Геленджик", start:d(2025,9,26), end:d(2025,10,10), cats:["kids"] },
-  { title:"Геленджикская регата (новички)", place:"Геленджик", start:d(2025,10,25), end:d(2025,11,3), cats:["kids"] },
+  { title:"ДЕТИ • Геленджикская регата (начинающие)", place:"Геленджик", start:d(2025,10,25), end:d(2025,11,3), cats:["kids"] },
   { title:"ДЕТИ • Командные гонки Первенства России", place:"Геленджик", start:d(2025,11,4), end:d(2025,11,10), cats:["kids"] },
 
   // Осень-зима — Tenzor & Турция
@@ -356,6 +356,16 @@ function renderEvents(){
   const dayDate = new Date(y, m-1, selectedDay);
   const list = monthEvents.filter(ev => ev.start <= dayDate && ev.end >= dayDate);
   const filtered = currentFilter==="all" ? list : list.filter(ev => ev.cats.includes(currentFilter));
+  // Update register button for kids
+  const regBtn = document.querySelector(".register-btn");
+  if (filtered && filtered.length > 0) {
+    regBtn.href = filtered.some(ev => ev.cats && ev.cats.includes("kids"))
+      ? "https://t.me/tenzorsailingacademykids"
+      : "https://wa.me/+79299513777";
+  } else {
+    regBtn.href = "https://wa.me/+79299513777";
+  }
+
 
   if (filtered.length===0){
     panel.innerHTML = `<div class="no-events"><div class="no-events-icon">🔍</div><p>Событий выбранной категории нет на ${selectedDay} ${fmtMonthLabel(ym)}</p></div>`;
@@ -368,7 +378,8 @@ function renderEvents(){
     const dateRange = (ev.start.toLocaleDateString("ru-RU",{day:"2-digit", month:"short"})
       + " – " + ev.end.toLocaleDateString("ru-RU",{day:"2-digit", month:"short", year:"numeric"})).replace(/\./g,"");
     const meta = ev.place ? `${dateRange} • ${ev.place}` : dateRange;
-    return `<a class="event-card ${cls}" href="https://wa.me/+79299513777" target="_blank">
+    const link = ev.cats && ev.cats.includes("kids") ? "https://t.me/tenzorsailingacademykids" : "https://wa.me/+79299513777";
+    return `<a class="event-card ${cls}" href="${link}" target="_blank">
       <div class="title">${ev.title}</div>
       <div class="meta">${meta}</div>
       <div class="tags">${catsHtml}</div>
