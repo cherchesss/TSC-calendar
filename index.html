@@ -1,430 +1,791 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tenzor Sailing Club — Календарь мероприятий</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link href="https://fonts.cdnfonts.com/css/zing-rust-base" rel="stylesheet">
-  <link href="https://fonts.cdnfonts.com/css/tt-octosquares" rel="stylesheet">
-  <style>
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body {
-      font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background:
-        radial-gradient(circle at 20% 50%, rgba(255,255,255,0.08) 0%, transparent 50%),
-        radial-gradient(circle at 80% 50%, rgba(255,255,255,0.08) 0%, transparent 50%),
-        linear-gradient(135deg, #1e3a8a 0%, #1e40af 25%, #2563eb 50%, #3b82f6 75%, #60a5fa 100%);
-      min-height:100vh; color:#0f172a; position:relative; overflow-x:hidden;
-    }
-    body::before{
-      content:''; position:absolute; inset:0;
-      background:
-        repeating-linear-gradient(0deg, transparent 0px, transparent 100px, rgba(255,255,255,0.08) 100px, rgba(255,255,255,0.08) 101px),
-        repeating-linear-gradient(90deg, transparent 0px, transparent 100px, rgba(255,255,255,0.08) 100px, rgba(255,255,255,0.08) 101px);
-      pointer-events:none;
-    }
-    .container{ max-width: 420px; margin:0 auto; padding:20px; position:relative; z-index:1; }
-    .header{ text-align:center; margin-bottom:16px; color:#fff; display:flex; flex-direction:column; align-items:center; gap:8px; }
-    .logo{ width:162px; height:auto; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3)); animation: wave 3s ease-in-out infinite; }
-    h1{ font-family:'Zing Rust Base','Inter',sans-serif; font-weight:800; font-size:24px; letter-spacing:-0.5px; text-shadow:0 2px 4px rgba(0,0,0,0.3); }
-    .subtitle{ font-size:14px; opacity:0.9; text-shadow:0 1px 2px rgba(0,0,0,0.2); }
-    @keyframes wave { 0%,100%{ transform:translateY(0);} 50%{ transform:translateY(-5px);} }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Tenzor Sailing Club · Сезон 2026/27</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+/* Layout: one phone-width column. Ближайший этап сверху, затем фильтры, затем
+   либо сетка месяца, либо лента всего сезона. Карточка этапа устроена как
+   посадочный талон: дата слева, этап в центре, коэффициент K справа. */
+:root{
+  color-scheme:dark;
+  --navy-900:#061430;
+  --navy-800:#0B2052;
+  --navy-700:#143272;
+  --brand:#244C9A;
+  --ice:#EEF4FF;
+  --muted:#9FB3DB;
+  --line:rgba(140,200,255,.16);
+  --panel:rgba(255,255,255,.055);
+  --cyan:#3DD9EB;
+  --gold:#FFC53D;
+  --display:'Unbounded','Arial Black',system-ui,sans-serif;
+  --body:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:var(--body);color:var(--ice);min-height:100vh;
+  background:var(--navy-900);
+  -webkit-font-smoothing:antialiased;
+  -webkit-tap-highlight-color:transparent;
+}
+body::before{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    repeating-linear-gradient(0deg,transparent 0 63px,rgba(255,255,255,.045) 63px 64px),
+    repeating-linear-gradient(90deg,transparent 0 63px,rgba(255,255,255,.045) 63px 64px),
+    radial-gradient(120% 60% at 85% -5%,rgba(61,217,235,.22),transparent 60%),
+    radial-gradient(90% 50% at 0% 30%,rgba(36,76,154,.75),transparent 70%),
+    linear-gradient(180deg,var(--navy-700) 0%,var(--navy-800) 38%,var(--navy-900) 100%);
+}
+.app{
+  position:relative;z-index:1;max-width:480px;margin:0 auto;
+  padding-block:calc(18px + env(safe-area-inset-top,0px)) calc(104px + env(safe-area-inset-bottom,0px));
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:18px;
+}
+button{font-family:inherit;color:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 
-    /* Month slider */
-    .month-slider-wrap{ display:flex; align-items:center; gap:8px; margin-bottom:14px; }
-    .nav-btn{
-      background: rgba(255,255,255,0.2);
-      border:2px solid rgba(255,255,255,0.4);
-      color:#fff; width:44px; height:44px; border-radius:12px;
-      font-size:20px; font-weight:800; cursor:pointer; transition:.25s; backdrop-filter: blur(8px);
-    }
-    .nav-btn:disabled{ opacity:.4; cursor:not-allowed; }
-    .nav-btn:hover:not(:disabled){ background:rgba(255,255,255,.9); color:#1e3a8a; transform:translateY(-2px); }
-    .months{
-      flex:1; display:flex; overflow-x:auto; gap:8px; padding-bottom:6px; scroll-snap-type:x mandatory;
-    }
-    .month-pill{
-      scroll-snap-align:center; white-space:nowrap; padding:10px 14px; border-radius:14px;
-      background: rgba(255,255,255,0.18);
-      border:2px solid rgba(255,255,255,0.4);
-      color:#fff; font-family:'TT Octosquares','Inter',sans-serif; font-weight:700; font-size:13px;
-      cursor:pointer; transition:.25s; backdrop-filter: blur(8px);
-    }
-    .month-pill.active, .month-pill:hover{ background:#fff; color:#1e3a8a; transform:translateY(-2px); box-shadow:0 6px 20px rgba(255,255,255,0.3); }
+/* Шапка */
+.top{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.logo{width:210px;max-width:62%;height:auto;filter:drop-shadow(0 6px 18px rgba(0,0,0,.35));animation:bob 5s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.season{font-family:var(--display);font-weight:700;font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan)}
+.facts{font-size:13px;color:var(--muted);font-weight:500}
 
-    /* Filters */
-    .filters{ display:flex; gap:8px; margin-bottom:16px; overflow-x:auto; padding-bottom:6px; }
-    .filter-btn{
-      background: rgba(255,255,255,0.2);
-      border:2px solid rgba(255,255,255,0.4);
-      padding:8px 14px; border-radius:18px; color:#fff;
-      font-family:'TT Octosquares','Inter',sans-serif; font-size:12px; font-weight:700;
-      cursor:pointer; transition:.25s; white-space:nowrap; backdrop-filter: blur(10px);
-    }
-    .filter-btn.active, .filter-btn:hover{ background:#fff; color:#1e3a8a; transform:translateY(-2px); box-shadow:0 4px 12px rgba(255,255,255,0.3); }
+/* Ближайший этап */
+.next{
+  position:relative;overflow:hidden;width:100%;text-align:left;border:1px solid rgba(255,255,255,.22);
+  border-radius:22px;padding:18px 18px 16px;
+  background:linear-gradient(135deg,#2D5FC0 0%,var(--brand) 45%,#16357C 100%);
+  box-shadow:0 18px 40px rgba(2,10,30,.5);
+  display:grid;grid-template-columns:1fr auto;gap:4px 14px;align-items:end;
+}
+.next::after{ /* парус */
+  content:"";position:absolute;right:-30px;top:-20px;width:190px;height:230px;pointer-events:none;
+  background:linear-gradient(160deg,rgba(255,255,255,.16),rgba(255,255,255,0) 70%);
+  clip-path:polygon(62% 0,100% 100%,0 86%);
+}
+.next > *{position:relative;z-index:1}
+.next .eyebrow{grid-column:1/-1;font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
+.next h2{grid-column:1/-1;font-family:var(--display);font-weight:700;font-size:20px;line-height:1.2;text-wrap:balance;margin-top:4px}
+.next .meta{font-size:13.5px;line-height:1.5;color:#DCE8FF;font-weight:500;min-width:0}
+.next .count{text-align:right;line-height:1}
+.next .count b{display:block;font-family:var(--display);font-weight:800;font-size:46px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.next .count span{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#DCE8FF}
+.next .count.live b{font-size:22px;color:var(--gold);letter-spacing:0}
 
-    .calendar{
-      background: rgba(255,255,255,0.95);
-      border-radius:20px; padding:18px; backdrop-filter: blur(20px);
-      box-shadow:0 20px 40px rgba(0,0,0,0.2); border:2px solid rgba(255,255,255,0.3);
-    }
-    .calendar-header{ display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
-    .calendar-header h2{
-      font-family:'TT Octosquares','Inter',sans-serif; font-size:20px; font-weight:800; color:#1e3a8a;
-    }
-    .weekdays{ display:grid; grid-template-columns: repeat(7,1fr); gap:5px; margin-bottom:10px; }
-    .weekday{ text-align:center; font-family:'TT Octosquares','Inter',sans-serif; font-size:11px; font-weight:700; color:#1e40af; padding:8px 0; }
+/* Фильтры */
+.chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin-inline:-16px;padding:2px 16px}
+.chips::-webkit-scrollbar{display:none}
+.chip{
+  flex:none;display:flex;align-items:center;gap:7px;white-space:nowrap;
+  padding:9px 14px;border-radius:999px;border:1px solid var(--line);background:var(--panel);
+  font-size:13px;font-weight:700;color:var(--ice);transition:background .2s,border-color .2s,color .2s;
+}
+.chip i{width:8px;height:8px;border-radius:50%;background:var(--c)}
+.chip[aria-pressed="true"]{background:var(--ice);color:var(--navy-800);border-color:var(--ice)}
 
-    .days{ display:grid; grid-template-columns:repeat(7,1fr); gap:5px; }
-    .day{
-      aspect-ratio:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
-      border-radius:12px; cursor:pointer; transition:.25s; position:relative; font-size:14px; font-weight:600; color:#1e3a8a;
-    }
-    .day.out{ opacity:.35; cursor:default; }
-    .day:hover{ background:rgba(59,130,246,0.08); transform:scale(1.04); }
-    .day.has-events{ background: linear-gradient(135deg, #2563eb, #1e40af); color:#fff; box-shadow:0 4px 15px rgba(37,99,235,0.35); }
-    .day.selected{ background: linear-gradient(135deg, #60a5fa, #3b82f6) !important; color:#fff !important; transform:scale(1.08); box-shadow:0 6px 20px rgba(96,165,250,0.45); }
-    .event-indicator{ width:6px; height:6px; background:#fff; border-radius:50%; margin-top:2px; }
+/* Коэффициент K */
+.kbox{border:1px solid var(--line);border-radius:18px;background:var(--panel);padding:14px}
+.kbox summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px;font-weight:800;font-size:14px;cursor:pointer}
+.kbox summary::-webkit-details-marker{display:none}
+.kbox summary em{font-style:normal;font-size:12px;font-weight:600;color:var(--muted)}
+.kbox p{font-size:13px;line-height:1.55;color:var(--muted);margin:10px 0 12px}
+.krow{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.kbtn{border:1px solid var(--line);background:transparent;border-radius:12px;padding:9px 2px 8px;display:flex;flex-direction:column;align-items:center;gap:5px}
+.kbtn b{font-family:var(--display);font-size:15px;font-weight:700;color:var(--gold)}
+.kbtn small{font-size:10.5px;color:var(--muted);font-weight:600}
+.kbtn[aria-pressed="true"]{background:var(--gold);border-color:var(--gold)}
+.kbtn[aria-pressed="true"] b,.kbtn[aria-pressed="true"] small{color:var(--navy-900)}
+.kbtn[aria-pressed="true"] .pen i{background:rgba(6,20,48,.25)}
+.kbtn[aria-pressed="true"] .pen i.on{background:var(--navy-900)}
+.pen{display:flex;gap:2px}
+.pen i{width:7px;height:9px;background:rgba(255,255,255,.16);clip-path:polygon(0 0,100% 50%,0 100%)}
+.pen i.on{background:var(--gold)}
 
-    .events-panel{ margin-top:18px; max-height:320px; overflow-y:auto; }
-    .event-card{
-      background:#fff; border-radius:14px; padding:14px; margin-bottom:12px;
-      box-shadow:0 5px 15px rgba(0,0,0,0.08); border-left:4px solid; transition:.25s; text-decoration:none; color:inherit; display:block;
-    }
-    .event-card:hover{ transform: translateY(-2px); box-shadow:0 10px 25px rgba(0,0,0,0.15); }
-    .event-card .title{ font-family:'TT Octosquares','Inter',sans-serif; font-weight:800; font-size:15px; color:#1e3a8a; margin-bottom:4px; }
-    .event-card .meta{ font-size:13px; color:#475569; }
-    .event-card .tags{ margin-top:6px; display:flex; gap:6px; flex-wrap:wrap; }
-    .tag{ font-size:11px; font-weight:700; border-radius:999px; padding:4px 8px; border:1px solid #e2e8f0; color:#1e293b; background:#f8fafc; }
+/* Переключатель вида */
+.seg{display:grid;grid-template-columns:1fr 1fr;padding:4px;border-radius:14px;background:rgba(0,0,0,.28);border:1px solid var(--line)}
+.seg button{border:0;background:transparent;border-radius:10px;padding:10px;font-weight:800;font-size:13px;color:var(--muted);transition:background .2s,color .2s}
+.seg button[aria-pressed="true"]{background:var(--ice);color:var(--navy-800)}
 
-    .register-btn{
-      width:100%; background: linear-gradient(135deg, #2563eb, #1e40af); border:none; padding:14px 18px; border-radius:14px;
-      color:#fff; font-family:'TT Octosquares','Inter',sans-serif; font-size:15px; font-weight:800; cursor:pointer; transition:.25s;
-      text-decoration:none; display:block; text-align:center; margin-top:14px; box-shadow:0 5px 15px rgba(37,99,235,0.3);
-    }
-    .register-btn:hover{ transform: translateY(-2px); box-shadow:0 8px 25px rgba(37,99,235,0.4); background: linear-gradient(135deg, #3b82f6, #2563eb); }
+/* Лента месяцев */
+.mstrip{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin-inline:-16px;padding:2px 16px;scroll-behavior:smooth}
+.mstrip::-webkit-scrollbar{display:none}
+.mpill{flex:none;min-width:58px;border:1px solid transparent;background:transparent;border-radius:14px;padding:8px 6px 7px;display:flex;flex-direction:column;align-items:center;gap:3px}
+.mpill .y{font-size:10px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+.mpill .m{font-family:var(--display);font-weight:700;font-size:12px;letter-spacing:.06em}
+.mpill .n{font-size:10.5px;font-weight:700;color:var(--cyan)}
+.mpill.empty .n{color:rgba(159,179,219,.5)}
+.mpill[aria-pressed="true"]{background:var(--panel);border-color:var(--cyan)}
 
-    /* category colors on left border */
-    .kids { border-left-color:#22c55e; }
-    .tec { border-left-color:#2563eb; }
-    .tic { border-left-color:#0ea5e9; }
-    .brics { border-left-color:#ef4444; }
-    .intensive { border-left-color:#60a5fa; }
-    .ufo { border-left-color:#a855f7; }
+/* Сетка месяца */
+.cal{border:1px solid var(--line);border-radius:22px;background:rgba(6,20,48,.55);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding:16px 12px 12px}
+.calhead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;padding-inline:4px}
+.calhead h3{font-family:var(--display);font-weight:700;font-size:18px}
+.calhead h3 span{color:var(--muted);font-weight:500}
+.nav{display:flex;gap:6px}
+.nav button{width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:var(--panel);font-size:18px;line-height:1}
+.nav button:disabled{opacity:.3;cursor:default}
+.wd,.grid{display:grid;grid-template-columns:repeat(7,1fr)}
+.wd span{text-align:center;font-size:11px;font-weight:700;color:var(--muted);padding:6px 0;letter-spacing:.06em}
+.wd span:nth-child(n+6){color:var(--cyan)}
+.grid{row-gap:2px}
+.day{position:relative;height:44px;border:0;background:transparent;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--ice)}
+.day.blank{pointer-events:none}
+.day span{position:relative;z-index:1}
+.day.has{font-weight:800}
+.day.has::before{content:"";position:absolute;inset:5px 0;background:var(--c);opacity:.34}
+.day.start::before{left:3px;border-top-left-radius:12px;border-bottom-left-radius:12px}
+.day.end::before{right:3px;border-top-right-radius:12px;border-bottom-right-radius:12px}
+.day.today span::after{content:"";position:absolute;left:50%;bottom:-7px;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:var(--gold)}
+.day.sel::after{content:"";position:absolute;inset:3px 4px;border:2px solid var(--ice);border-radius:12px;z-index:2}
 
-    .no-events{ text-align:center; padding:28px 16px; color:#64748b; }
-    .no-events-icon{ font-size:44px; margin-bottom:10px; opacity:.5; }
-  </style>
+/* Список этапов */
+.list{display:flex;flex-direction:column;gap:10px}
+.lhead{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-top:6px}
+.lhead h4{font-family:var(--display);font-weight:700;font-size:15px}
+.lhead span,.lhead button{font-size:12px;font-weight:700;color:var(--muted)}
+.lhead button{background:none;border:0;color:var(--cyan);padding:4px 0}
+.card{
+  display:grid;grid-template-columns:62px 1fr auto;align-items:stretch;
+  border:1px solid var(--line);border-radius:18px;background:var(--panel);overflow:hidden;
+  animation:rise .35s ease both;
+}
+@keyframes rise{from{opacity:.4;transform:translateY(8px)}to{opacity:1;transform:none}}
+.card.past{opacity:.5}
+.card.live{border-color:var(--gold)}
+.cdate{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:12px 4px;background:rgba(0,0,0,.22);border-right:1px dashed var(--line);text-align:center}
+.cdate b{font-family:var(--display);font-weight:700;font-size:15px;line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap}
+.cdate small{font-size:10.5px;font-weight:800;letter-spacing:.12em;color:var(--muted)}
+.cdate.tbd b{font-size:11px;font-weight:500;line-height:1.25;white-space:normal;color:var(--muted)}
+.cmain{min-width:0;padding:12px 10px 12px 12px;display:flex;flex-direction:column;gap:3px}
+.cser{display:flex;align-items:center;gap:6px;font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--c)}
+.cser i{width:7px;height:7px;border-radius:50%;background:var(--c);flex:none}
+.cmain h5{font-size:15px;font-weight:800;line-height:1.25}
+.cmain p{font-size:12.5px;color:var(--muted);font-weight:500;line-height:1.4}
+.cmain .st{color:var(--ice);font-weight:700}
+.card.live .st{color:var(--gold)}
+.ck{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:10px 12px 10px 4px}
+.ck b{font-family:var(--display);font-weight:800;font-size:22px;line-height:1;color:var(--gold)}
+.ck b sup{font-size:11px;font-weight:700;vertical-align:top;margin-right:1px;position:relative;top:2px}
+.empty{border:1px dashed var(--line);border-radius:18px;padding:22px 16px;text-align:center;font-size:13.5px;color:var(--muted);line-height:1.5}
+
+/* Кнопка записи */
+.cta{
+  position:fixed;left:0;right:0;bottom:0;z-index:5;
+  padding:26px max(16px,env(safe-area-inset-right,0px)) calc(14px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));
+  background:linear-gradient(180deg,rgba(6,20,48,0),var(--navy-900) 46%);pointer-events:none;
+}
+.cta a{
+  pointer-events:auto;display:block;max-width:448px;margin:0 auto;text-align:center;text-decoration:none;
+  padding:16px;border-radius:16px;font-family:var(--display);font-weight:700;font-size:14px;letter-spacing:.04em;
+  color:var(--navy-900);background:linear-gradient(135deg,#FFFFFF,#CFE6FF);
+  box-shadow:0 10px 30px rgba(61,217,235,.28);
+}
+.cta a:active{transform:translateY(1px)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* Заставка «Подъём паруса» */
+#splash{position:fixed;inset:0;z-index:50;overflow:hidden;cursor:pointer;background:#0B2052}
+.sp-cv{position:absolute;inset:0;width:100%;height:100%;display:block}
+.sp-logo{position:absolute;left:0;right:0;top:10vh;display:flex;justify-content:center;pointer-events:none;transition:opacity .28s ease,transform .5s ease}
+#splash.zoom .sp-logo{opacity:0;transform:scale(1.3)}
+.sp-lw{position:relative;line-height:0}
+.sp-svg{width:min(70vw,300px,40vh);height:auto;overflow:visible}
+.sp-svg *{fill:#fff;fill-opacity:0;stroke:#fff;stroke-width:2.4;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1}
+.sp-svg .sh{animation:spDraw .6s cubic-bezier(.6,0,.3,1) .05s forwards,spFill .3s ease .55s forwards}
+.sp-svg .tz{stroke:none;opacity:0;fill-opacity:1;transform:translateY(46px);animation:spUp .4s cubic-bezier(.2,.7,.2,1) .6s forwards}
+.sp-svg .sc{stroke-width:1.6;animation:spDraw .6s ease-in-out .72s forwards,spFill .25s ease 1.15s forwards}
+.sp-star{position:absolute;left:61%;top:2%;width:26px;height:26px;margin:-13px;background:#fff;transform:scale(0);
+  clip-path:polygon(50% 0,57% 43%,100% 50%,57% 57%,50% 100%,43% 57%,0 50%,43% 43%);animation:spStar .75s ease .7s forwards}
+@keyframes spDraw{to{stroke-dashoffset:0}}
+@keyframes spFill{to{fill-opacity:1;stroke-opacity:0}}
+@keyframes spUp{to{opacity:1;transform:none}}
+@keyframes spStar{0%{transform:scale(0) rotate(0)}45%{transform:scale(1.25) rotate(90deg)}100%{transform:scale(0) rotate(180deg)}}
+body.reveal .app > *{animation:spEnter .6s cubic-bezier(.2,.7,.2,1) both}
+body.reveal .app > :nth-child(2){animation-delay:.07s}
+body.reveal .app > :nth-child(3){animation-delay:.14s}
+body.reveal .app > :nth-child(4){animation-delay:.21s}
+body.reveal .app > :nth-child(5){animation-delay:.28s}
+body.reveal .app > :nth-child(6){animation-delay:.35s}
+body.reveal .app > :nth-child(7){animation-delay:.42s}
+@keyframes spEnter{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}
+</style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <!-- Simple Tenzor mark (inline SVG from previous file trimmed) -->
-      <svg class="logo" width="80" height="45" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                    <style>
-                        .st0 {
-                            fill: #fff;
-                        }
-                    </style>
-                </defs>
-                <path class="st0" d="M474.98,712.8c0-8.83,30.32-35.22,61.96-43.81-15.4-.36-69.36,28.17-69.36,45.84,0,9.43,11.46,11.7,19.34,11.7,32.59,0,92.04-25.55,92.04-51.69,0-13.25-13.97-17.67-27.46-21.37-12.06-3.34-23.52-6.33-23.52-13.25,0-12.3,35.1-31.99,50.38-33.66,1.55-.12,3.1-.24,4.42-.24,4.53,0,7.76,1.07,7.16,4.89-1.55,10.86-24.83,24.24-29.73,24.24-.72,0-1.43,0-1.43-.72,0-1.67.72-4.18,2.51-6.21-2.39,1.43-7.04,6.57-7.04,11.46,0,2.63,3.58,3.58,5.97,3.58,12.66,0,33.43-15.4,33.67-29.61.12-9.19-7.16-11.82-18.03-11.46-17.43.6-55.99,16.59-55.99,36.65,0,10.5,16.24,12.65,30.56,16.59,11.7,3.22,21.61,7.64,21.61,15.04,0,18.03-58.26,46.8-87.03,46.8-3.82,0-10.03-.12-10.03-4.77h0ZM610.62,690.23c-.48,1.79-.95,3.22-.95,4.42,0,2.15,2.27,4.66,3.94,5.61.83.48,1.43.72,2.03.72,7.16,0,26.62-19.94,37.01-31.28.36-.36-.24-1.31-.83-.72-7.4,6.92-24.47,23.28-31.99,25.43,0-.95.48-2.39,1.19-4.06,3.58-7.64,14.33-20.65,14.92-19.46.48-1.43-3.58-8-5.97-6.81-2.98,1.67-10.74,9.19-12.89,11.1-6.21,5.25-22.92,17.31-26.86,18.62-.36.12-.6.12-.84,0-1.07-.6,7.88-15.64,19.22-25.31,7.76-6.57,16.47-11.58,23.4-11.94,3.58-.24,5.85,1.55,5.85,5.13,0,1.79-.72,3.22-1.31,4.3-.12.12.12.24.36.12,1.2-1.55,2.27-3.58,2.27-5.61,0-5.61-5.97-7.52-10.5-7.52-21.97,0-49.3,26.62-49.3,39.64,0,2.39,3.1,6.92,5.25,8,.24.12.83.36,1.07.36,5.01,0,28.29-20.06,31.88-23.64-2.27,2.98-5.49,8.47-6.92,12.89h0ZM642.47,700.98c7.4-.6,26.38-20.06,36.77-31.28.36-.36-.24-1.31-1.08-.72-7.28,7.04-24.71,23.64-31.99,25.55,1.43-4.89,17.79-32.11,22.68-31.64.95.12,1.55.72,1.55.24,0-2.98-4.78-7.76-7.52-7.76-.48,0-1.19.12-1.79.72-7.64,6.09-24.95,32.11-24.95,39.04,0,2.15,2.98,5.13,4.89,5.73.6.12.95.12,1.43.12h0ZM673.99,637.11c-3.1.95-7.64,8.72-7.52,12.18.12,2.15,2.63,4.66,4.3,2.51,1.43-2.03,6.92-6.92,8.95-7.76,1.31-.6,2.27-.12,2.51-.12.48,0-.24-1.79-1.31-2.98-1.55-1.79-4.18-4.18-6.92-3.82h0ZM684.36,655.73c-14.56,22.8-20.06,34.38-20.06,37.96,0,1.31.24,1.55.36,1.79.72,1.79,3.34,4.3,4.3,4.78,1.08.6,2.27,1.07,3.82.48,7.16-2.63,27.93-24.35,33.78-31.04.36-.36-.12-1.31-.84-.72-7.04,6.44-26.86,25.9-31.99,25.31,2.86-7.64,11.82-22.8,22.21-38.56,5.97-8.71,10.86-15.76,16-22.32,5.25-6.45,13.01-17.67,17.19-15.76,2.27,1.31-2.51-5.61-9.19-5.25-1.07,0-2.63.95-4.42,2.39-2.98,2.39-6.33,6.21-9.91,10.86-6.21,8.12-13.85,18.5-21.25,30.08h0ZM696.9,700.98c7.4-.6,26.38-20.06,36.77-31.28.36-.36-.24-1.31-1.08-.72-7.28,7.04-24.71,23.64-31.99,25.55,1.43-4.89,17.79-32.11,22.68-31.64.95.12,1.55.72,1.55.24,0-2.98-4.77-7.76-7.52-7.76-.48,0-1.19.12-1.79.72-7.64,6.09-24.95,32.11-24.95,39.04,0,2.15,2.98,5.13,4.9,5.73.6.12.95.12,1.43.12h0ZM728.41,637.11c-3.11.95-7.64,8.72-7.52,12.18.12,2.15,2.63,4.66,4.3,2.51,1.43-2.03,6.92-6.92,8.95-7.76,1.31-.6,2.27-.12,2.5-.12.48,0-.24-1.79-1.31-2.98-1.55-1.79-4.18-4.18-6.92-3.82h0ZM779.27,661.34c1.55-1.31-2.27-7.76-5.13-7.76-4.06,0-25.07,16.12-38.44,29.25-2.51,2.39-4.78,4.78-6.09,6.69,1.79-3.34,8-12.18,13.61-19.58,3.58-4.66,8-9.67,9.55-9.55.95.12,1.43.72,1.43.24,0-2.98-4.54-7.64-7.52-7.64-.36,0-1.07.12-1.55.6-3.11,2.39-8.36,8.72-12.66,14.8-3.94,5.49-8.48,12.53-11.34,18.14-2.98,5.49-3.58,8.72-3.34,9.55.95,3.46,3.82,7.28,7.4,6.44-1.79-.83-.96-4.06,2.27-7.88,1.31-1.67,2.75-3.46,4.3-5.01,8.83-9.55,26.38-24,36.17-28.41-6.21,5.61-20.05,25.55-20.05,32.35,0,1.31.83,3.1,2.15,4.66,1.19,1.43,2.51,2.51,3.7,2.51,7.16,0,26.62-19.7,37.01-31.04.36-.36-.24-1.31-.95-.72-7.64,7.16-24.71,23.52-32.23,25.55.24-5.61,18.74-30.8,21.73-33.19h0ZM825.68,676.63c2.03-4.06,2.63-3.7,2.98-3.34.48-1.43-4.54-7.88-6.8-6.8-2.03.95-3.82,2.75-12.06,9.67-3.94,3.34-9.55,7.76-15.28,11.58-5.25,3.46-10.03,6.57-10.5,6.09-1.19-.95,7.52-15.64,18.86-25.31,7.88-6.57,16.47-11.58,23.4-11.94,3.58-.24,5.85,1.55,5.85,5.13,0,1.79-.72,3.22-1.19,4.3-.12.12,0,.24.24.12,1.07-1.55,2.27-3.58,2.27-5.61,0-5.61-5.97-7.52-10.63-7.52-21.85,0-49.3,26.62-49.3,39.64,0,2.39,2.98,6.69,5.13,8,.36.24.95.36,1.19.36,2.51,0,9.55-5.13,16.36-10.39,6.69-5.25,13.25-11.1,15.04-12.77,2.27-2.03,5.25-4.18,5.13-4.06,0,0-10.03,18.03-12.66,22.56-27.46,13.13-50.97,32.47-55.75,47.63-.6,1.79-.83,3.34-.83,4.66,0,5.01,3.7,7.04,8.12,7.04,1.31,0,2.63-.12,3.94-.48,22.92-6.09,42.62-36.05,57.9-62.68,3.7-1.55,7.52-3.22,11.34-4.77,1.67-.6-.24-.96-2.15-.36-2.63.84-5.25,1.79-7.88,2.75l7.28-13.49h0ZM761.22,746.46c-1.91.95-3.94,1.67-5.61,1.67-1.55,0-2.63-.6-2.63-2.27,0-1.19.6-2.87,1.91-5.25,8.36-15.52,24.95-29.13,46.68-40.59-12.18,19.7-26.38,38.92-40.35,46.44h0ZM994.13,615.74c0-9.19-7.28-13.61-17.67-13.61-40.23,0-110.79,57.06-108.4,98.85.72,14.56,11.82,20.17,24.59,20.41,26.14.6,71.15-29.72,92.16-50.26.48-.24-.84-.84-.95-.72-28.29,22.92-64.82,43.1-87.27,43.1-9.19,0-16.59-2.75-17.43-12.77-2.63-33.31,61.72-95.62,98.49-95.62,7.4,0,12.06,3.1,12.06,8.47,0,9.67-18.86,20.3-26.98,20.3-.72-.95,2.87-5.37,2.63-5.37-1.19,0-6.81,5.25-6.81,8.12,0,3.7,1.91,7.64,5.01,7.64,11.7,0,30.56-16.59,30.56-28.53h0ZM993.43,655.73c-14.56,22.8-20.05,34.38-20.05,37.96,0,1.31.24,1.55.36,1.79.72,1.79,3.34,4.3,4.3,4.78,1.07.6,2.27,1.07,3.82.48,7.16-2.63,27.94-24.35,33.78-31.04.36-.36-.12-1.31-.83-.72-7.04,6.44-26.86,25.9-32,25.31,2.87-7.64,11.82-22.8,22.21-38.56,5.97-8.71,10.86-15.76,16-22.32,5.25-6.45,13.01-17.67,17.19-15.76,2.27,1.31-2.51-5.61-9.19-5.25-1.08,0-2.63.95-4.42,2.39-2.98,2.39-6.33,6.21-9.91,10.86-6.21,8.12-13.85,18.5-21.25,30.08h0ZM1031.48,689.28c-.6,1.79-1.31,3.94-1.31,5.13,0,2.15,2.39,4.9,4.3,5.85.6.48,1.31.72,1.91.72,7.16,0,26.62-19.94,37.01-31.28.36-.36-.24-1.31-.95-.72-7.28,6.92-24.23,23.16-31.75,25.43,0-3.34,4.42-11.82,10.39-19.82,3.94-5.25,7.28-9.55,9.07-11.46,1.55-1.67,3.11-2.75,3.94-2.75,1.08.12,1.43.72,1.43.24,0-2.98-4.53-7.64-7.4-7.64-.48,0-1.07.12-1.67.6-6.8,5.25-15.64,15.64-21.85,21.73-5.73,5.49-17.91,16.24-23.64,18.62,0-3.46,5.97-13.85,12.06-21.85,4.06-5.25,9.07-11.46,10.86-11.22,1.07.12,1.55.72,1.55.24,0-3.11-4.66-7.76-7.52-7.76-.36,0-1.08.12-1.67.72-2.98,2.39-8,8.12-12.18,13.97-6.8,9.43-13.37,21.49-13.37,26.62,0,2.87,3.7,6.09,5.61,6.09h.95c7.16-1.43,23.16-18.62,35.22-30.92-4.42,5.49-8.95,13.97-10.98,19.46h0ZM1108.52,631.02c7.28-9.07,12.66-14.33,15.88-12.66,2.27,1.31-2.39-5.73-9.07-5.73-1.08,0-2.63.84-4.54,2.15-5.61,4.66-10.27,10.39-14.44,16-12.3,16.35-27.1,38.08-33.78,53-3.46,7.88-3.7,11.46-3.34,12.41.83,1.91,3.22,4.42,4.3,4.78,1.19.72,2.39,1.19,3.82.6-5.37-.6-.48-7.52,2.98-12.53,12.42-18.27,36.29-30.8,38.32-30.68-1.08,5.97-22.8,37.72-34.86,37.72-2.39,0-4.53-2.27-4.53-3.46,0-.36-.48-.12-.48.48,0,3.94,5.25,7.04,9.91,7.04,16.47,0,39.63-29.01,39.63-39.75,0-1.67-4.18-6.21-5.61-6.8-6.45-2.27-27.46,13.97-36.77,25.43,9.19-17.67,20.77-33.19,32.59-47.99h0Z"/>
-                <path class="st0" d="M523.37,415.58l-1.72,1.55c-4.3,3.96-4.99,3.79-10.67,3.79h-78.79c-5.68,0-6.36.17-10.67-3.79l-1.72-1.55h-1.38l-2.41,31.74h2.69c6.02-21.33,15.2-20.78,34.99-20.78h10.32v79.01c0,21.33-1.03,27.01-24.08,29.76v2.58h63.31v-2.58c-23.05-2.75-24.08-8.43-24.08-29.76v-79.01h10.32c19.78,0,28.95-.56,34.97,20.78h2.63l-2.33-31.74h-1.38ZM543.78,535.32v2.58h95.09c2.07-11.88,3.7-21.84,5.85-34.06h-2.79c-4.3,21.68-14.2,28.45-35.88,28.45-28.21,0-25.81-12.62-25.81-22.77v-28.21h17.89c12.9,0,22.36.17,24.6,15.31h2.58v-38.36h-2.58c-1.89,14.8-11.7,15.83-24.6,15.83h-17.89v-47.53h16.69c17.38,0,33.38-1.33,34.58,20.86h2.58l2.06-26.49h-92.38v2.58c20.64,2.75,20.82,7.91,21.33,25.63v60.56c-.52,17.72-.69,22.88-21.33,25.63h0ZM772.74,511.08l-84.67-90.16h-26.3v2.58c18.72,3.91,22.16,13.58,22.16,28.6v28.32c0,39.05,1.21,52.5-22.01,54.91v2.58h50.62v-2.58c-24.95-4.99-22.63-13.42-22.88-54.65v-33.06c29.17,31.24,56.64,60.7,87.01,93.56h1.8v-92.85c0-16.08,1.07-23.34,16.61-24.83v-2.58h-43.69v2.58c18.5,0,21.35,9.93,21.35,25.18v62.4h0ZM817.03,420.91l-2.75,33.89h2.75c1.89-9.29,6.19-20.99,15.31-25.12,8.43-3.79,27.82-3.14,37.28-3.14h15.87l-65.19,94.66-11.35,15.48.69,1.21h99.24c2.8-15.86,3.5-20.49,6.28-36.5h-2.78c-2.92,10.1-4.82,20.65-18.86,27.32-12.56,5.16-30.7,3.56-44.12,3.56h-16.01l75.84-110.17-.86-1.2h-91.35ZM1062.16,479.41c0-30.62-19.1-60.56-63.14-60.56-35.96,0-62.79,23.74-62.79,60.38s26.66,60.73,62.96,60.73,62.97-23.57,62.97-60.55h0ZM956.19,475.1c0-23.22,11.87-52.13,41.46-52.13,26.32,0,44.04,28.9,44.56,59.35,0,24.6-12.56,53.5-40.95,53.5-30.97,0-45.07-34.06-45.07-60.73h0ZM1111.29,478.37v-51.83c18.06-.17,35.78,5.55,35.78,25.68,0,19.09-19.27,25.98-35.78,26.15h0ZM1096.16,455.7v53.98c-.52,17.72-.69,22.88-21.33,25.63v2.58h56.87v-2.58c-23.57-3.27-20.4-10.58-20.4-25.63v-26.21c5.02-.31,18.8-2.4,25.45,11.38,3.61,7.4,12.23,21.88,23.58,33.75,9.98,10.32,26.22,11.5,41.63,10.67l-.04-2.72c-28.39-5.85-44.35-35.3-57.6-58.52l-.86-1.2c12.39-5.51,21.33-13.76,21.33-28.21,0-8.26-2.8-27.61-46.79-27.61h-41.98v2.7c19.27,1.72,20.13,5.68,20.13,32h0Z"/>
-                <path class="st0" d="M895.13,155.07h-192.81s-.02,126.95.13,131.77c.02.77.02,1.63.02,2.55-.02,10.31-.04,31.31,29.59,42.32l13.67,5.25c22.3,8.44,23.94,9.01,50.43,19.01l2.56.83,2.56-.83c26.5-10,28.13-10.57,50.43-19.01l13.67-5.25c29.64-11.01,29.61-32.01,29.59-42.32,0-.92,0-1.78.02-2.55.14-4.82.13-131.77.13-131.77h0ZM888.62,286.66c-.03.83-.03,1.75-.03,2.74.02,10.01-.06,26.94-25.52,36.41l-13.68,5.26c-21.86,8.4-23.9,9.21-50.24,18.94l-.39.13h-.04s-.04,0-.04,0l-.4-.13c-26.34-9.73-28.39-10.54-50.24-18.94l-13.68-5.26c-25.47-9.46-25.54-26.39-25.52-36.41,0-.99,0-1.91-.02-2.74.11-6.46.07-105.67.09-125.26h179.62c.02,19.59-.01,118.8.09,125.26h0Z"/>
-                <path class="st0" d="M792.76,208.8c0-5.34,1.3-32.91-28.87-32.91h-42.38v36.07l10.62,9.7v-34.88h32c19.19,0,17.93,18.1,17.93,21.88v109.68s-31.07-11.47-40.5-15.66c-2.86-1.48-9.43-3.92-9.43-18.1v-26.75l-.12-.11-10.5-9.56v36.78c0,21.9,12.94,26.62,18.16,28.59,9.56,3.64,53.07,20.21,53.07,20.21v-124.96h0Z"/>
-                <path class="st0" d="M804.69,208.8c0-5.34-1.3-32.91,28.87-32.91h42.38v36.07l-10.62,9.7v-34.88h-32c-19.19,0-17.93,18.1-17.93,21.88v109.68s31.07-11.47,40.5-15.66c2.86-1.48,9.43-3.92,9.43-18.1v-26.75l.12-.11,10.5-9.56v36.78c0,21.9-12.95,26.62-18.17,28.59-9.56,3.64-53.07,20.21-53.07,20.21v-124.96h0Z"/>
-                <polygon class="st0" points="753.78 263.76 760.31 263.76 760.31 237.27 767.86 237.27 767.86 231.64 767.36 231.64 766.91 231.64 757.1 231.64 746.79 231.64 746.28 231.64 746.28 237.27 753.78 237.27 753.78 263.76 753.78 263.76"/>
-                <path class="st0" d="M849.77,237.27v-5.58h-.33c-3.23,0-6.08.39-8.53,1.11-.39.11-.78.28-1.12.39-2.01.73-3.79,1.79-5.24,3.07-1.79,1.62-3.07,3.51-3.85,5.69-.56,1.73-.89,3.68-.89,5.74s.33,3.85.89,5.52c.44,1.17,1,2.23,1.73,3.24.33.5.73.95,1.12,1.39.39.44.84.83,1.28,1.28h.06c1.39,1.22,3.01,2.23,4.91,2.95.45.17.89.34,1.39.5,2.4.73,5.19,1.12,8.25,1.12h.33v-5.63h-.22c-.05,0-.09-.01-.14-.01-1.21.03-2.49-.08-3.79-.36-.07-.01-.12-.04-.19-.05-4.52-1.05-8.7-4.04-8.7-9.71,0-.08,0-.38,0-.46.12-10.3,12.11-10.08,13.02-10.2h0Z"/>
-            </svg>
-      <h1>Tenzor Sailing Club</h1>
-      <div class="subtitle">Календарь мероприятий</div>
-    </div>
+<div id="splash" aria-hidden="true"><div class="sp-logo"><div class="sp-lw" id="spLogo"><i class="sp-star"></i></div></div></div>
+<div class="app">
+  <header class="top">
+    <svg class="logo" viewBox="395 140 815 625" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Tenzor Sailing Club"><path fill="#fff" d="M474.98,712.8c0-8.83,30.32-35.22,61.96-43.81-15.4-.36-69.36,28.17-69.36,45.84,0,9.43,11.46,11.7,19.34,11.7,32.59,0,92.04-25.55,92.04-51.69,0-13.25-13.97-17.67-27.46-21.37-12.06-3.34-23.52-6.33-23.52-13.25,0-12.3,35.1-31.99,50.38-33.66,1.55-.12,3.1-.24,4.42-.24,4.53,0,7.76,1.07,7.16,4.89-1.55,10.86-24.83,24.24-29.73,24.24-.72,0-1.43,0-1.43-.72,0-1.67.72-4.18,2.51-6.21-2.39,1.43-7.04,6.57-7.04,11.46,0,2.63,3.58,3.58,5.97,3.58,12.66,0,33.43-15.4,33.67-29.61.12-9.19-7.16-11.82-18.03-11.46-17.43.6-55.99,16.59-55.99,36.65,0,10.5,16.24,12.65,30.56,16.59,11.7,3.22,21.61,7.64,21.61,15.04,0,18.03-58.26,46.8-87.03,46.8-3.82,0-10.03-.12-10.03-4.77h0ZM610.62,690.23c-.48,1.79-.95,3.22-.95,4.42,0,2.15,2.27,4.66,3.94,5.61.83.48,1.43.72,2.03.72,7.16,0,26.62-19.94,37.01-31.28.36-.36-.24-1.31-.83-.72-7.4,6.92-24.47,23.28-31.99,25.43,0-.95.48-2.39,1.19-4.06,3.58-7.64,14.33-20.65,14.92-19.46.48-1.43-3.58-8-5.97-6.81-2.98,1.67-10.74,9.19-12.89,11.1-6.21,5.25-22.92,17.31-26.86,18.62-.36.12-.6.12-.84,0-1.07-.6,7.88-15.64,19.22-25.31,7.76-6.57,16.47-11.58,23.4-11.94,3.58-.24,5.85,1.55,5.85,5.13,0,1.79-.72,3.22-1.31,4.3-.12.12.12.24.36.12,1.2-1.55,2.27-3.58,2.27-5.61,0-5.61-5.97-7.52-10.5-7.52-21.97,0-49.3,26.62-49.3,39.64,0,2.39,3.1,6.92,5.25,8,.24.12.83.36,1.07.36,5.01,0,28.29-20.06,31.88-23.64-2.27,2.98-5.49,8.47-6.92,12.89h0ZM642.47,700.98c7.4-.6,26.38-20.06,36.77-31.28.36-.36-.24-1.31-1.08-.72-7.28,7.04-24.71,23.64-31.99,25.55,1.43-4.89,17.79-32.11,22.68-31.64.95.12,1.55.72,1.55.24,0-2.98-4.78-7.76-7.52-7.76-.48,0-1.19.12-1.79.72-7.64,6.09-24.95,32.11-24.95,39.04,0,2.15,2.98,5.13,4.89,5.73.6.12.95.12,1.43.12h0ZM673.99,637.11c-3.1.95-7.64,8.72-7.52,12.18.12,2.15,2.63,4.66,4.3,2.51,1.43-2.03,6.92-6.92,8.95-7.76,1.31-.6,2.27-.12,2.51-.12.48,0-.24-1.79-1.31-2.98-1.55-1.79-4.18-4.18-6.92-3.82h0ZM684.36,655.73c-14.56,22.8-20.06,34.38-20.06,37.96,0,1.31.24,1.55.36,1.79.72,1.79,3.34,4.3,4.3,4.78,1.08.6,2.27,1.07,3.82.48,7.16-2.63,27.93-24.35,33.78-31.04.36-.36-.12-1.31-.84-.72-7.04,6.44-26.86,25.9-31.99,25.31,2.86-7.64,11.82-22.8,22.21-38.56,5.97-8.71,10.86-15.76,16-22.32,5.25-6.45,13.01-17.67,17.19-15.76,2.27,1.31-2.51-5.61-9.19-5.25-1.07,0-2.63.95-4.42,2.39-2.98,2.39-6.33,6.21-9.91,10.86-6.21,8.12-13.85,18.5-21.25,30.08h0ZM696.9,700.98c7.4-.6,26.38-20.06,36.77-31.28.36-.36-.24-1.31-1.08-.72-7.28,7.04-24.71,23.64-31.99,25.55,1.43-4.89,17.79-32.11,22.68-31.64.95.12,1.55.72,1.55.24,0-2.98-4.77-7.76-7.52-7.76-.48,0-1.19.12-1.79.72-7.64,6.09-24.95,32.11-24.95,39.04,0,2.15,2.98,5.13,4.9,5.73.6.12.95.12,1.43.12h0ZM728.41,637.11c-3.11.95-7.64,8.72-7.52,12.18.12,2.15,2.63,4.66,4.3,2.51,1.43-2.03,6.92-6.92,8.95-7.76,1.31-.6,2.27-.12,2.5-.12.48,0-.24-1.79-1.31-2.98-1.55-1.79-4.18-4.18-6.92-3.82h0ZM779.27,661.34c1.55-1.31-2.27-7.76-5.13-7.76-4.06,0-25.07,16.12-38.44,29.25-2.51,2.39-4.78,4.78-6.09,6.69,1.79-3.34,8-12.18,13.61-19.58,3.58-4.66,8-9.67,9.55-9.55.95.12,1.43.72,1.43.24,0-2.98-4.54-7.64-7.52-7.64-.36,0-1.07.12-1.55.6-3.11,2.39-8.36,8.72-12.66,14.8-3.94,5.49-8.48,12.53-11.34,18.14-2.98,5.49-3.58,8.72-3.34,9.55.95,3.46,3.82,7.28,7.4,6.44-1.79-.83-.96-4.06,2.27-7.88,1.31-1.67,2.75-3.46,4.3-5.01,8.83-9.55,26.38-24,36.17-28.41-6.21,5.61-20.05,25.55-20.05,32.35,0,1.31.83,3.1,2.15,4.66,1.19,1.43,2.51,2.51,3.7,2.51,7.16,0,26.62-19.7,37.01-31.04.36-.36-.24-1.31-.95-.72-7.64,7.16-24.71,23.52-32.23,25.55.24-5.61,18.74-30.8,21.73-33.19h0ZM825.68,676.63c2.03-4.06,2.63-3.7,2.98-3.34.48-1.43-4.54-7.88-6.8-6.8-2.03.95-3.82,2.75-12.06,9.67-3.94,3.34-9.55,7.76-15.28,11.58-5.25,3.46-10.03,6.57-10.5,6.09-1.19-.95,7.52-15.64,18.86-25.31,7.88-6.57,16.47-11.58,23.4-11.94,3.58-.24,5.85,1.55,5.85,5.13,0,1.79-.72,3.22-1.19,4.3-.12.12,0,.24.24.12,1.07-1.55,2.27-3.58,2.27-5.61,0-5.61-5.97-7.52-10.63-7.52-21.85,0-49.3,26.62-49.3,39.64,0,2.39,2.98,6.69,5.13,8,.36.24.95.36,1.19.36,2.51,0,9.55-5.13,16.36-10.39,6.69-5.25,13.25-11.1,15.04-12.77,2.27-2.03,5.25-4.18,5.13-4.06,0,0-10.03,18.03-12.66,22.56-27.46,13.13-50.97,32.47-55.75,47.63-.6,1.79-.83,3.34-.83,4.66,0,5.01,3.7,7.04,8.12,7.04,1.31,0,2.63-.12,3.94-.48,22.92-6.09,42.62-36.05,57.9-62.68,3.7-1.55,7.52-3.22,11.34-4.77,1.67-.6-.24-.96-2.15-.36-2.63.84-5.25,1.79-7.88,2.75l7.28-13.49h0ZM761.22,746.46c-1.91.95-3.94,1.67-5.61,1.67-1.55,0-2.63-.6-2.63-2.27,0-1.19.6-2.87,1.91-5.25,8.36-15.52,24.95-29.13,46.68-40.59-12.18,19.7-26.38,38.92-40.35,46.44h0ZM994.13,615.74c0-9.19-7.28-13.61-17.67-13.61-40.23,0-110.79,57.06-108.4,98.85.72,14.56,11.82,20.17,24.59,20.41,26.14.6,71.15-29.72,92.16-50.26.48-.24-.84-.84-.95-.72-28.29,22.92-64.82,43.1-87.27,43.1-9.19,0-16.59-2.75-17.43-12.77-2.63-33.31,61.72-95.62,98.49-95.62,7.4,0,12.06,3.1,12.06,8.47,0,9.67-18.86,20.3-26.98,20.3-.72-.95,2.87-5.37,2.63-5.37-1.19,0-6.81,5.25-6.81,8.12,0,3.7,1.91,7.64,5.01,7.64,11.7,0,30.56-16.59,30.56-28.53h0ZM993.43,655.73c-14.56,22.8-20.05,34.38-20.05,37.96,0,1.31.24,1.55.36,1.79.72,1.79,3.34,4.3,4.3,4.78,1.07.6,2.27,1.07,3.82.48,7.16-2.63,27.94-24.35,33.78-31.04.36-.36-.12-1.31-.83-.72-7.04,6.44-26.86,25.9-32,25.31,2.87-7.64,11.82-22.8,22.21-38.56,5.97-8.71,10.86-15.76,16-22.32,5.25-6.45,13.01-17.67,17.19-15.76,2.27,1.31-2.51-5.61-9.19-5.25-1.08,0-2.63.95-4.42,2.39-2.98,2.39-6.33,6.21-9.91,10.86-6.21,8.12-13.85,18.5-21.25,30.08h0ZM1031.48,689.28c-.6,1.79-1.31,3.94-1.31,5.13,0,2.15,2.39,4.9,4.3,5.85.6.48,1.31.72,1.91.72,7.16,0,26.62-19.94,37.01-31.28.36-.36-.24-1.31-.95-.72-7.28,6.92-24.23,23.16-31.75,25.43,0-3.34,4.42-11.82,10.39-19.82,3.94-5.25,7.28-9.55,9.07-11.46,1.55-1.67,3.11-2.75,3.94-2.75,1.08.12,1.43.72,1.43.24,0-2.98-4.53-7.64-7.4-7.64-.48,0-1.07.12-1.67.6-6.8,5.25-15.64,15.64-21.85,21.73-5.73,5.49-17.91,16.24-23.64,18.62,0-3.46,5.97-13.85,12.06-21.85,4.06-5.25,9.07-11.46,10.86-11.22,1.07.12,1.55.72,1.55.24,0-3.11-4.66-7.76-7.52-7.76-.36,0-1.08.12-1.67.72-2.98,2.39-8,8.12-12.18,13.97-6.8,9.43-13.37,21.49-13.37,26.62,0,2.87,3.7,6.09,5.61,6.09h.95c7.16-1.43,23.16-18.62,35.22-30.92-4.42,5.49-8.95,13.97-10.98,19.46h0ZM1108.52,631.02c7.28-9.07,12.66-14.33,15.88-12.66,2.27,1.31-2.39-5.73-9.07-5.73-1.08,0-2.63.84-4.54,2.15-5.61,4.66-10.27,10.39-14.44,16-12.3,16.35-27.1,38.08-33.78,53-3.46,7.88-3.7,11.46-3.34,12.41.83,1.91,3.22,4.42,4.3,4.78,1.19.72,2.39,1.19,3.82.6-5.37-.6-.48-7.52,2.98-12.53,12.42-18.27,36.29-30.8,38.32-30.68-1.08,5.97-22.8,37.72-34.86,37.72-2.39,0-4.53-2.27-4.53-3.46,0-.36-.48-.12-.48.48,0,3.94,5.25,7.04,9.91,7.04,16.47,0,39.63-29.01,39.63-39.75,0-1.67-4.18-6.21-5.61-6.8-6.45-2.27-27.46,13.97-36.77,25.43,9.19-17.67,20.77-33.19,32.59-47.99h0Z"/><path fill="#fff" d="M523.37,415.58l-1.72,1.55c-4.3,3.96-4.99,3.79-10.67,3.79h-78.79c-5.68,0-6.36.17-10.67-3.79l-1.72-1.55h-1.38l-2.41,31.74h2.69c6.02-21.33,15.2-20.78,34.99-20.78h10.32v79.01c0,21.33-1.03,27.01-24.08,29.76v2.58h63.31v-2.58c-23.05-2.75-24.08-8.43-24.08-29.76v-79.01h10.32c19.78,0,28.95-.56,34.97,20.78h2.63l-2.33-31.74h-1.38ZM543.78,535.32v2.58h95.09c2.07-11.88,3.7-21.84,5.85-34.06h-2.79c-4.3,21.68-14.2,28.45-35.88,28.45-28.21,0-25.81-12.62-25.81-22.77v-28.21h17.89c12.9,0,22.36.17,24.6,15.31h2.58v-38.36h-2.58c-1.89,14.8-11.7,15.83-24.6,15.83h-17.89v-47.53h16.69c17.38,0,33.38-1.33,34.58,20.86h2.58l2.06-26.49h-92.38v2.58c20.64,2.75,20.82,7.91,21.33,25.63v60.56c-.52,17.72-.69,22.88-21.33,25.63h0ZM772.74,511.08l-84.67-90.16h-26.3v2.58c18.72,3.91,22.16,13.58,22.16,28.6v28.32c0,39.05,1.21,52.5-22.01,54.91v2.58h50.62v-2.58c-24.95-4.99-22.63-13.42-22.88-54.65v-33.06c29.17,31.24,56.64,60.7,87.01,93.56h1.8v-92.85c0-16.08,1.07-23.34,16.61-24.83v-2.58h-43.69v2.58c18.5,0,21.35,9.93,21.35,25.18v62.4h0ZM817.03,420.91l-2.75,33.89h2.75c1.89-9.29,6.19-20.99,15.31-25.12,8.43-3.79,27.82-3.14,37.28-3.14h15.87l-65.19,94.66-11.35,15.48.69,1.21h99.24c2.8-15.86,3.5-20.49,6.28-36.5h-2.78c-2.92,10.1-4.82,20.65-18.86,27.32-12.56,5.16-30.7,3.56-44.12,3.56h-16.01l75.84-110.17-.86-1.2h-91.35ZM1062.16,479.41c0-30.62-19.1-60.56-63.14-60.56-35.96,0-62.79,23.74-62.79,60.38s26.66,60.73,62.96,60.73,62.97-23.57,62.97-60.55h0ZM956.19,475.1c0-23.22,11.87-52.13,41.46-52.13,26.32,0,44.04,28.9,44.56,59.35,0,24.6-12.56,53.5-40.95,53.5-30.97,0-45.07-34.06-45.07-60.73h0ZM1111.29,478.37v-51.83c18.06-.17,35.78,5.55,35.78,25.68,0,19.09-19.27,25.98-35.78,26.15h0ZM1096.16,455.7v53.98c-.52,17.72-.69,22.88-21.33,25.63v2.58h56.87v-2.58c-23.57-3.27-20.4-10.58-20.4-25.63v-26.21c5.02-.31,18.8-2.4,25.45,11.38,3.61,7.4,12.23,21.88,23.58,33.75,9.98,10.32,26.22,11.5,41.63,10.67l-.04-2.72c-28.39-5.85-44.35-35.3-57.6-58.52l-.86-1.2c12.39-5.51,21.33-13.76,21.33-28.21,0-8.26-2.8-27.61-46.79-27.61h-41.98v2.7c19.27,1.72,20.13,5.68,20.13,32h0Z"/><path fill="#fff" d="M895.13,155.07h-192.81s-.02,126.95.13,131.77c.02.77.02,1.63.02,2.55-.02,10.31-.04,31.31,29.59,42.32l13.67,5.25c22.3,8.44,23.94,9.01,50.43,19.01l2.56.83,2.56-.83c26.5-10,28.13-10.57,50.43-19.01l13.67-5.25c29.64-11.01,29.61-32.01,29.59-42.32,0-.92,0-1.78.02-2.55.14-4.82.13-131.77.13-131.77h0ZM888.62,286.66c-.03.83-.03,1.75-.03,2.74.02,10.01-.06,26.94-25.52,36.41l-13.68,5.26c-21.86,8.4-23.9,9.21-50.24,18.94l-.39.13h-.04s-.04,0-.04,0l-.4-.13c-26.34-9.73-28.39-10.54-50.24-18.94l-13.68-5.26c-25.47-9.46-25.54-26.39-25.52-36.41,0-.99,0-1.91-.02-2.74.11-6.46.07-105.67.09-125.26h179.62c.02,19.59-.01,118.8.09,125.26h0Z"/><path fill="#fff" d="M792.76,208.8c0-5.34,1.3-32.91-28.87-32.91h-42.38v36.07l10.62,9.7v-34.88h32c19.19,0,17.93,18.1,17.93,21.88v109.68s-31.07-11.47-40.5-15.66c-2.86-1.48-9.43-3.92-9.43-18.1v-26.75l-.12-.11-10.5-9.56v36.78c0,21.9,12.94,26.62,18.16,28.59,9.56,3.64,53.07,20.21,53.07,20.21v-124.96h0Z"/><path fill="#fff" d="M804.69,208.8c0-5.34-1.3-32.91,28.87-32.91h42.38v36.07l-10.62,9.7v-34.88h-32c-19.19,0-17.93,18.1-17.93,21.88v109.68s31.07-11.47,40.5-15.66c2.86-1.48,9.43-3.92,9.43-18.1v-26.75l.12-.11,10.5-9.56v36.78c0,21.9-12.95,26.62-18.17,28.59-9.56,3.64-53.07,20.21-53.07,20.21v-124.96h0Z"/><polygon fill="#fff" points="753.78 263.76 760.31 263.76 760.31 237.27 767.86 237.27 767.86 231.64 767.36 231.64 766.91 231.64 757.1 231.64 746.79 231.64 746.28 231.64 746.28 237.27 753.78 237.27 753.78 263.76 753.78 263.76"/><path fill="#fff" d="M849.77,237.27v-5.58h-.33c-3.23,0-6.08.39-8.53,1.11-.39.11-.78.28-1.12.39-2.01.73-3.79,1.79-5.24,3.07-1.79,1.62-3.07,3.51-3.85,5.69-.56,1.73-.89,3.68-.89,5.74s.33,3.85.89,5.52c.44,1.17,1,2.23,1.73,3.24.33.5.73.95,1.12,1.39.39.44.84.83,1.28,1.28h.06c1.39,1.22,3.01,2.23,4.91,2.95.45.17.89.34,1.39.5,2.4.73,5.19,1.12,8.25,1.12h.33v-5.63h-.22c-.05,0-.09-.01-.14-.01-1.21.03-2.49-.08-3.79-.36-.07-.01-.12-.04-.19-.05-4.52-1.05-8.7-4.04-8.7-9.71,0-.08,0-.38,0-.46.12-10.3,12.11-10.08,13.02-10.2h0Z"/></svg>
+    <div class="season">Сезон 2026 / 27</div>
+    <div class="facts" id="facts"></div>
+  </header>
 
-    <div class="month-slider-wrap">
-      <button class="nav-btn" id="prev-month" aria-label="Предыдущий месяц">‹</button>
-      <div class="months" id="months"></div>
-      <button class="nav-btn" id="next-month" aria-label="Следующий месяц">›</button>
-    </div>
+  <button class="next" id="next" type="button"></button>
 
-    <div class="filters">
-      <button class="filter-btn active" data-filter="all">Все</button>
-      <button class="filter-btn" data-filter="kids">Дети</button>
-      <button class="filter-btn" data-filter="tec">Tenzor Elite Cup</button>
-      <button class="filter-btn" data-filter="tic">Tenzor International Cup</button>
-      <button class="filter-btn" data-filter="brics">BRICS</button>
-      <button class="filter-btn" data-filter="intensive">Интенсив</button>
-      <button class="filter-btn" data-filter="ufo">Кубок ЮФО</button>
-    </div>
+  <div class="chips" id="chips" role="group" aria-label="Серии"></div>
 
-    <div class="calendar">
-      <div class="calendar-header">
-        <h2 id="current-month-label"></h2>
-      </div>
+  <details class="kbox" id="kbox">
+    <summary><span>Коэффициент K</span><em id="khint">что это и фильтр</em></summary>
+    <p>Каждому этапу присваивается коэффициент K от 1 до 5. Он отражает статус этапа, его продолжительность и планируемое число гонок. Нажмите на значение, чтобы оставить только такие этапы.</p>
+    <div class="krow" id="krow"></div>
+  </details>
 
-      <div class="weekdays">
-        <div class="weekday">Пн</div><div class="weekday">Вт</div><div class="weekday">Ср</div>
-        <div class="weekday">Чт</div><div class="weekday">Пт</div><div class="weekday">Сб</div><div class="weekday">Вс</div>
-      </div>
-
-      <div class="days" id="days"></div>
-
-      <div class="events-panel" id="events-panel">
-        <div class="no-events">
-          <div class="no-events-icon">⛵</div>
-          <p>Выберите день в календаре, чтобы увидеть события</p>
-        </div>
-      </div>
-
-      <a class="register-btn" target="_blank" href="https://wa.me/+79299513777">Записаться</a>
-    </div>
+  <div class="seg" role="group" aria-label="Вид">
+    <button type="button" id="vMonth" aria-pressed="true">По месяцам</button>
+    <button type="button" id="vSeason" aria-pressed="false">Весь сезон</button>
   </div>
 
+  <section id="monthView">
+    <div class="mstrip" id="mstrip"></div>
+    <div class="cal" id="cal" style="margin-top:12px">
+      <div class="calhead">
+        <h3 id="mtitle"></h3>
+        <div class="nav">
+          <button type="button" id="prev" aria-label="Предыдущий месяц">‹</button>
+          <button type="button" id="nextm" aria-label="Следующий месяц">›</button>
+        </div>
+      </div>
+      <div class="wd"><span>ПН</span><span>ВТ</span><span>СР</span><span>ЧТ</span><span>ПТ</span><span>СБ</span><span>ВС</span></div>
+      <div class="grid" id="grid"></div>
+    </div>
+    <div class="list" id="mlist" style="margin-top:14px"></div>
+  </section>
+
+  <section id="seasonView" hidden>
+    <div class="list" id="slist"></div>
+  </section>
+</div>
+
+<div class="cta"><a href="https://wa.me/+79299513777" target="_blank" rel="noopener">Записаться на этап</a></div>
+
 <script>
-/** =========================
- *  DATA
- *  ========================= */
-// Helper to build Date objects in local time (no TZ surprises)
-function d(y,m,day){ return new Date(y, m-1, day); }
+const WA = 'https://wa.me/+79299513777';
 
-// Catalog months (YYYY-MM)
-const monthRange = [
-  "2025-09", "2025-10", "2025-11", "2025-12",
-  "2026-01", "2026-02", "2026-03", "2026-04"
-];
-
-// Events database
-const EVENTS = [
-  // Детские первенства — Геленджик
-  { title:"ДЕТИ • Первенство России", place:"Геленджик", start:d(2025,9,26), end:d(2025,10,10), cats:["kids"] },
-  { title:"ДЕТИ • Геленджикская регата (начинающие)", place:"Геленджик", start:d(2025,10,25), end:d(2025,11,3), cats:["kids"] },
-  { title:"ДЕТИ • Командные гонки Первенства России", place:"Геленджик", start:d(2025,11,4), end:d(2025,11,10), cats:["kids"] },
-
-  // Осень-зима — Tenzor & Турция
-  { title:"Tenzor Elite Cup (Сочи) • ФИНАЛ", start:d(2025,11,6), end:d(2025,11,9), cats:["tec"] },
-  { title:"Tenzor International Cup Turkiye • 1 этап", start:d(2025,11,19), end:d(2025,11,23), cats:["tic"] },
-  { title:"Парусный интенсив с Алексеем Кулаковым (Сочи)", start:d(2025,11,27), end:d(2025,11,30), cats:["intensive"] },
-
-  { title:"Tenzor Elite Cup (Сочи) • 1 этап", start:d(2025,12,4), end:d(2025,12,7), cats:["tec"] },
-  { title:"КУБОК ЮФО (Сочи) • 1 этап", start:d(2025,12,11), end:d(2025,12,14), cats:["ufo"] },
-  { title:"Tenzor International Cup & BRICS Turkiye • 2 этап", start:d(2025,12,18), end:d(2025,12,21), cats:["tic","brics"] },
-
-  { title:"Tenzor Elite Cup (Сочи) • 2 этап", start:d(2026,1,8), end:d(2026,1,11), cats:["tec"] },
-  { title:"Tenzor International Cup Turkiye • 3 этап", start:d(2026,1,15), end:d(2026,1,18), cats:["tic"] },
-  { title:"КУБОК ЮФО (Сочи) • 2 этап", start:d(2026,1,22), end:d(2026,1,25), cats:["ufo"] },
-
-  { title:"Tenzor Elite Cup (Сочи) • 3 этап", start:d(2026,2,5), end:d(2026,2,8), cats:["tec"] },
-  { title:"КУБОК ЮФО (Сочи) • 3 этап", start:d(2026,2,12), end:d(2026,2,15), cats:["ufo"] },
-  { title:"Tenzor International Cup Turkiye • 4 этап", start:d(2026,2,19), end:d(2026,2,22), cats:["tic"] },
-
-  { title:"Tenzor Elite Cup (Сочи) • 4 этап", start:d(2026,3,5), end:d(2026,3,8), cats:["tec"] },
-  { title:"КУБОК ЮФО (Сочи) • 4 этап", start:d(2026,3,12), end:d(2026,3,15), cats:["ufo"] },
-  { title:"Tenzor International Cup Turkiye • 5 этап", start:d(2026,3,19), end:d(2026,3,22), cats:["tic"] },
-
-  { title:"Tenzor Elite Cup (Сочи) • 5 этап — ФИНАЛ", start:d(2026,4,2), end:d(2026,4,5), cats:["tec"] },
-  { title:"Tenzor International Cup Turkiye • 6 этап — ФИНАЛ", start:d(2026,4,9), end:d(2026,4,12), cats:["tic"] },
-  { title:"КУБОК ЮФО (Сочи) • 5 этап — ФИНАЛ", start:d(2026,4,16), end:d(2026,4,19), cats:["ufo"] },
-];
-
-const CATEGORY_LABEL = {
-  kids: "Дети",
-  tec: "Tenzor Elite Cup",
-  tic: "Tenzor International Cup",
-  brics: "BRICS",
-  intensive: "Интенсив",
-  ufo: "Кубок ЮФО"
+const SERIES = {
+  tic:  {name:'Tenzor International Cup', short:'TIC',          c:'#3DD9EB'},
+  mec:  {name:'Middle East Cup J/70',     short:'MEC J/70',     c:'#FF8F66'},
+  tec:  {name:'Tenzor Elite Cup',         short:'TEC',          c:'#8FB2FF'},
+  kmm:  {name:'Кубок Минского моря',      short:'Минское море', c:'#5FE0A8'},
+  kds:  {name:'Кубок двух столиц',        short:'Две столицы',  c:'#C3A6FF'},
+  spec: {name:'БРИКС и ШОС',              short:'БРИКС · ШОС',  c:'#FF7FB8'}
 };
 
-/** =========================
- *  STATE
- *  ========================= */
-let currentMonthIndex = 0; // start at first month of range
-let currentFilter = "all";
-let selectedDay = null;
+// Приложение 1. Календарь этапов и коэффициенты K на сезон 2026-2027
+// from/to — даты; month — если известен только месяц; без дат и месяца — «по назначению»
+const RAW = [
+  {s:['mec'], t:'Middle East Cup J/70', st:'4-й этап', from:'2026-12-10', to:'2026-12-13', place:'ОАЭ', flag:'🇦🇪', k:4},
+  {s:['tic'], t:'Tenzor International Cup', st:'1-й этап', from:'2026-12-17', to:'2026-12-20', place:'Турция', flag:'🇹🇷', k:4},
+  {s:['mec'], t:'Middle East Cup J/70', st:'5-й этап', from:'2027-01-14', to:'2027-01-17', place:'Саудовская Аравия', flag:'🇸🇦', k:4},
+  {s:['tic'], t:'Tenzor International Cup', st:'2-й этап', from:'2027-01-21', to:'2027-01-24', place:'Турция', flag:'🇹🇷', k:4},
+  {s:['mec'], t:'Middle East Cup J/70', st:'6-й этап', from:'2027-02-11', to:'2027-02-14', place:'Саудовская Аравия', flag:'🇸🇦', k:4},
+  {s:['tic'], t:'Tenzor International Cup', st:'3-й этап', from:'2027-02-25', to:'2027-02-28', place:'Турция', flag:'🇹🇷', k:4},
+  {s:['mec'], t:'Middle East Cup J/70', st:'7-й этап, заключительный', from:'2027-03-11', to:'2027-03-14', place:'ОАЭ', flag:'🇦🇪', k:5},
+  {s:['tic'], t:'Tenzor International Cup', st:'4-й этап', from:'2027-03-18', to:'2027-03-21', place:'Турция', flag:'🇹🇷', k:4},
+  {s:['spec'], t:'Чемпионат БРИКС по парусному спорту', st:'', from:'2027-04-08', to:'2027-04-11', place:'ОАЭ', flag:'🇦🇪', k:5},
+  {s:['tic'], t:'Tenzor International Cup', st:'5-й этап, заключительный', from:'2027-04-22', to:'2027-04-25', place:'Турция', flag:'🇹🇷', k:5},
+  {s:['kmm'], t:'Кубок Минского моря', st:'1-й этап', from:'2027-05-23', to:'2027-05-23', place:'Республика Беларусь', flag:'🇧🇾', k:1},
+  {s:['tec','spec'], t:'Tenzor Elite Cup', st:'1-й этап · Кубок ШОС по парусному спорту, 1-й этап', from:'2027-05-27', to:'2027-05-30', place:'Республика Беларусь', flag:'🇧🇾', k:3},
+  {s:['kmm'], t:'Кубок Минского моря', st:'2-й этап', from:'2027-06-06', to:'2027-06-06', place:'Республика Беларусь', flag:'🇧🇾', k:1},
+  {s:['kds'], t:'Кубок двух столиц', st:'1-й этап', from:'2027-06-11', to:'2027-06-13', place:'Республика Беларусь', flag:'🇧🇾', k:2},
+  {s:['kmm'], t:'Кубок Минского моря', st:'3-й этап', from:'2027-06-20', to:'2027-06-20', place:'Республика Беларусь', flag:'🇧🇾', k:1},
+  {s:['kmm'], t:'Кубок Минского моря', st:'4-й этап', from:'2027-06-27', to:'2027-06-27', place:'Республика Беларусь', flag:'🇧🇾', k:1},
+  {s:['kmm'], t:'Кубок Минского моря', st:'5-й этап', from:'2027-07-04', to:'2027-07-04', place:'Республика Беларусь', flag:'🇧🇾', k:1},
+  {s:['tec'], t:'Tenzor Elite Cup', st:'2-й этап', from:'2027-07-08', to:'2027-07-11', place:'Республика Беларусь', flag:'🇧🇾', k:3},
+  {s:['kmm'], t:'Кубок Минского моря', st:'6-й этап', from:'2027-07-18', to:'2027-07-18', place:'Республика Беларусь', flag:'🇧🇾', k:1},
+  {s:['kds'], t:'Кубок двух столиц', st:'2-й этап', from:'2027-07-23', to:'2027-07-25', place:'Республика Беларусь', flag:'🇧🇾', k:2},
+  {s:['kds'], t:'Кубок двух столиц', st:'3-й этап', from:'2027-08-13', to:'2027-08-15', place:'Республика Беларусь', flag:'🇧🇾', k:2},
+  {s:['kmm'], t:'Кубок Минского моря', st:'7-й этап', from:'2027-08-22', to:'2027-08-22', place:'Республика Беларусь', flag:'🇧🇾', k:1},
+  {s:['tec'], t:'Tenzor Elite Cup', st:'3-й этап', from:'2027-09-02', to:'2027-09-05', place:'Республика Беларусь', flag:'🇧🇾', k:3},
+  {s:['kmm'], t:'Кубок Минского моря', st:'8-й этап', from:'2027-09-19', to:'2027-09-19', place:'Республика Беларусь', flag:'🇧🇾', k:1},
+  {s:['kmm'], t:'Кубок Минского моря', st:'9-й этап, заключительный', from:'2027-09-26', to:'2027-09-26', place:'Республика Беларусь', flag:'🇧🇾', k:5},
+  {s:['tec'], t:'Tenzor Elite Cup', st:'Гранд Финал', from:'2027-10-07', to:'2027-10-10', place:'Республика Беларусь', flag:'🇧🇾', k:5},
+  {s:['mec'], t:'Middle East Cup J/70', st:'1-й этап · Чемпионат ОАЭ в классе J/70', month:'2027-10', place:'ОАЭ', flag:'🇦🇪', k:4},
+  {s:['mec'], t:'Middle East Cup J/70', st:'2-й этап · Чемпионат Бахрейна в классе J/70', month:'2027-11', place:'Бахрейн', flag:'🇧🇭', k:4},
+  {s:['spec'], t:'Кубок ШОС по парусному спорту', st:'2-й этап', place:'Место по назначению', flag:'', k:3}
+];
 
-/** =========================
- *  HELPERS
- *  ========================= */
-function fmtMonthLabel(ym){
-  const [y,m]=ym.split("-").map(Number);
-  const dt = new Date(y, m-1, 1);
-  return dt.toLocaleDateString("ru-RU", { month:"long", year:"numeric" });
-}
-function ymKey(dateObj){
-  const y = dateObj.getFullYear();
-  const m = String(dateObj.getMonth()+1).padStart(2,"0");
-  return `${y}-${m}`;
-}
-function daysInMonth(y, m){ return new Date(y, m, 0).getDate(); } // m is 1..12
-function getMonthEvents(ym){
-  // Return events that overlap the month
-  const [y,m] = ym.split("-").map(Number);
-  const start = new Date(y, m-1, 1);
-  const end = new Date(y, m, 0); // last day of month
-  return EVENTS.filter(ev => ev.end >= start && ev.start <= end);
-}
-function rangeDays(start, end){
-  const out=[]; const d = new Date(start);
-  while (d <= end){
-    out.push(new Date(d));
-    d.setDate(d.getDate()+1);
-  }
-  return out;
-}
+const MN = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+const MG = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+const MS = ['ЯНВ','ФЕВ','МАР','АПР','МАЙ','ИЮН','ИЮЛ','АВГ','СЕН','ОКТ','НОЯ','ДЕК'];
 
-/** =========================
- *  RENDER
- *  ========================= */
-function renderMonthPills(){
-  const wrap = document.getElementById("months");
-  wrap.innerHTML = "";
-  monthRange.forEach((ym, idx) => {
-    const btn = document.createElement("button");
-    btn.className = "month-pill" + (idx===currentMonthIndex ? " active" : "");
-    btn.textContent = fmtMonthLabel(ym);
-    btn.addEventListener("click", ()=>{ currentMonthIndex = idx; selectedDay=null; renderAll(); });
-    wrap.appendChild(btn);
-  });
-  document.getElementById("prev-month").disabled = currentMonthIndex===0;
-  document.getElementById("next-month").disabled = currentMonthIndex===monthRange.length-1;
-}
+const toDate = s => { const p = s.split('-').map(Number); return new Date(p[0], p[1]-1, p[2]); };
+const pl = (n,a,b,c) => { const m10=n%10, m100=n%100; return (m10===1&&m100!==11)?a:(m10>=2&&m10<=4&&(m100<10||m100>=20))?b:c; };
+const now = new Date();
+const TODAY = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+const dayDiff = (a,b) => Math.round((a-b)/864e5);
 
-function renderCalendar(){
-  const ym = monthRange[currentMonthIndex];
-  const label = document.getElementById("current-month-label");
-  label.textContent = fmtMonthLabel(ym);
-
-  const [y,m] = ym.split("-").map(Number);
-  const firstDay = new Date(y, m-1, 1);
-  const days = daysInMonth(y, m);
-  let startWeekday = firstDay.getDay(); // 0=Sun..6=Sat
-  // We want Monday-first grid: convert 0..6 so that Mon=0..Sun=6
-  startWeekday = (startWeekday + 6) % 7;
-
-  const monthEvents = getMonthEvents(ym);
-  const mapDayToEvents = {};
-  monthEvents.forEach(ev => {
-    const s = new Date(Math.max(ev.start, new Date(y, m-1, 1)));
-    const e = new Date(Math.min(ev.end, new Date(y, m-1, days)));
-    rangeDays(s, e).forEach(dy => {
-      const key = dy.getDate();
-      (mapDayToEvents[key] ||= []).push(ev);
-    });
-  });
-
-  const grid = document.getElementById("days");
-  grid.innerHTML = "";
-
-  // Lead-in cells from prev month
-  for(let i=0;i<startWeekday;i++){
-    const cell = document.createElement("div");
-    cell.className = "day out";
-    grid.appendChild(cell);
-  }
-  // Month days
-  for(let dnum=1; dnum<=days; dnum++){
-    const cell = document.createElement("div");
-    cell.className = "day";
-    cell.textContent = dnum;
-    if (mapDayToEvents[dnum]){
-      // Filter awareness for the dot & background
-      const hasFiltered = currentFilter==="all" ? true : mapDayToEvents[dnum].some(e => e.cats.includes(currentFilter));
-      if (hasFiltered){
-        cell.classList.add("has-events");
-        const dot = document.createElement("div");
-        dot.className = "event-indicator";
-        cell.appendChild(dot);
-      }
-    }
-    cell.addEventListener("click", ()=>{ selectedDay = dnum; renderEvents(); document.querySelectorAll('.day').forEach(x=>x.classList.remove('selected')); cell.classList.add('selected'); });
-    grid.appendChild(cell);
-  }
-}
-
-function renderEvents(){
-  const panel = document.getElementById("events-panel");
-  const ym = monthRange[currentMonthIndex];
-  const [y,m] = ym.split("-").map(Number);
-  const monthEvents = getMonthEvents(ym);
-
-  if (!selectedDay){
-    panel.innerHTML = `<div class="no-events"><div class="no-events-icon">⛵</div><p>Выберите день в календаре, чтобы увидеть события</p></div>`;
-    return;
-  }
-  const dayDate = new Date(y, m-1, selectedDay);
-  const list = monthEvents.filter(ev => ev.start <= dayDate && ev.end >= dayDate);
-  const filtered = currentFilter==="all" ? list : list.filter(ev => ev.cats.includes(currentFilter));
-  // Update register button for kids
-  const regBtn = document.querySelector(".register-btn");
-  if (filtered && filtered.length > 0) {
-    regBtn.href = filtered.some(ev => ev.cats && ev.cats.includes("kids"))
-      ? "https://t.me/tenzorsailingacademykids"
-      : "https://wa.me/+79299513777";
-  } else {
-    regBtn.href = "https://wa.me/+79299513777";
-  }
-
-
-  if (filtered.length===0){
-    panel.innerHTML = `<div class="no-events"><div class="no-events-icon">🔍</div><p>Событий выбранной категории нет на ${selectedDay} ${fmtMonthLabel(ym)}</p></div>`;
-    return;
-  }
-
-  const html = filtered.map(ev => {
-    const catsHtml = ev.cats.map(c=>`<span class="tag">${CATEGORY_LABEL[c]||c}</span>`).join("");
-    const cls = ev.cats[0] || "tec";
-    const dateRange = (ev.start.toLocaleDateString("ru-RU",{day:"2-digit", month:"short"})
-      + " – " + ev.end.toLocaleDateString("ru-RU",{day:"2-digit", month:"short", year:"numeric"})).replace(/\./g,"");
-    const meta = ev.place ? `${dateRange} • ${ev.place}` : dateRange;
-    const link = ev.cats && ev.cats.includes("kids") ? "https://t.me/tenzorsailingacademykids" : "https://wa.me/+79299513777";
-    return `<a class="event-card ${cls}" href="${link}" target="_blank">
-      <div class="title">${ev.title}</div>
-      <div class="meta">${meta}</div>
-      <div class="tags">${catsHtml}</div>
-    </a>`;
-  }).join("");
-  panel.innerHTML = html;
-}
-
-function renderFilters(){
-  document.querySelectorAll(".filter-btn").forEach(btn => {
-    btn.classList.toggle("active", btn.dataset.filter===currentFilter || (btn.dataset.filter==="all" && currentFilter==="all"));
-  });
-}
-
-function renderAll(){
-  renderMonthPills();
-  renderFilters();
-  renderCalendar();
-  renderEvents();
-}
-
-/** =========================
- *  INIT
- *  ========================= */
-document.addEventListener("DOMContentLoaded", () => {
-  // Init month pills
-  renderAll();
-
-  // Nav buttons
-  document.getElementById("prev-month").addEventListener("click", ()=>{
-    if (currentMonthIndex>0){ currentMonthIndex--; selectedDay=null; renderAll(); }
-  });
-  document.getElementById("next-month").addEventListener("click", ()=>{
-    if (currentMonthIndex<monthRange.length-1){ currentMonthIndex++; selectedDay=null; renderAll(); }
-  });
-
-  // Filters
-  document.querySelectorAll(".filter-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      currentFilter = btn.dataset.filter;
-      selectedDay = selectedDay; // keep selected day
-      renderAll();
-    });
-  });
+const EVENTS = RAW.map((e,i) => ({
+  ...e, id:i,
+  a: e.from ? toDate(e.from) : null,
+  b: e.to ? toDate(e.to) : null,
+  mkey: e.from ? e.from.slice(0,7) : (e.month || null)
+})).sort((x,y) => {
+  const kx = x.a ? x.a.getTime() : (x.month ? toDate(x.month+'-28').getTime() : Infinity);
+  const ky = y.a ? y.a.getTime() : (y.month ? toDate(y.month+'-28').getTime() : Infinity);
+  return kx - ky;
 });
+
+// Месяцы сезона: декабрь 2026 — ноябрь 2027
+const MONTHS = Array.from({length:12}, (_,i) => {
+  const d = new Date(2026, 11+i, 1);
+  return {y:d.getFullYear(), m:d.getMonth(), key:d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')};
+});
+
+const upcoming = EVENTS.find(e => e.a && e.b >= TODAY) || null;
+const state = {
+  series:'all', k:0, view:'month', day:null,
+  mi: Math.max(0, MONTHS.findIndex(m => m.key === (upcoming ? upcoming.mkey : MONTHS[0].key)))
+};
+
+const $ = id => document.getElementById(id);
+const match = e => (state.series==='all' || e.s.includes(state.series)) && (!state.k || e.k===state.k);
+const color = e => SERIES[(state.series!=='all' && e.s.includes(state.series)) ? state.series : e.s[0]].c;
+
+function rangeText(e){
+  if(e.a){
+    const same = e.a.getTime()===e.b.getTime();
+    return (same ? e.a.getDate() : e.a.getDate()+'–'+e.b.getDate())+' '+MG[e.a.getMonth()]+' '+e.a.getFullYear();
+  }
+  if(e.month){ const d = toDate(e.month+'-01'); return MN[d.getMonth()].toLowerCase()+' '+d.getFullYear()+', дата по назначению'; }
+  return 'дата по назначению';
+}
+function statusOf(e){
+  if(!e.a) return {cls:'', text:'Дата по назначению'};
+  if(TODAY > e.b) return {cls:'past', text:'Завершён'};
+  if(TODAY >= e.a) return {cls:'live', text:'Идёт сейчас'};
+  const n = dayDiff(e.a, TODAY);
+  return {cls:'', text: n===1 ? 'Завтра' : 'Через '+n+' '+pl(n,'день','дня','дней')};
+}
+const pennants = k => '<span class="pen" aria-hidden="true">'+[1,2,3,4,5].map(i=>'<i'+(i<=k?' class="on"':'')+'></i>').join('')+'</span>';
+
+function card(e){
+  const st = statusOf(e), c = color(e);
+  let date;
+  if(e.a){
+    const same = e.a.getTime()===e.b.getTime();
+    date = '<div class="cdate"><b>'+(same?e.a.getDate():e.a.getDate()+'–'+e.b.getDate())+'</b><small>'+MS[e.a.getMonth()]+'</small></div>';
+  } else {
+    const lab = e.month ? MS[toDate(e.month+'-01').getMonth()] : '2027';
+    date = '<div class="cdate tbd"><b>дата по назна&shy;чению</b><small>'+lab+'</small></div>';
+  }
+  const serName = e.s.map(k=>SERIES[k].short).join(' · ');
+  return '<article class="card '+st.cls+'" style="--c:'+c+'">'+date+
+    '<div class="cmain"><div class="cser"><i></i>'+serName+'</div>'+
+    '<h5>'+e.t+'</h5>'+
+    (e.st?'<p>'+e.st+'</p>':'')+
+    '<p>'+(e.flag?e.flag+' ':'')+e.place+'</p>'+
+    '<p class="st">'+st.text+'</p></div>'+
+    '<div class="ck" title="Коэффициент K = '+e.k+'"><b><sup>K</sup>'+e.k+'</b>'+pennants(e.k)+'</div></article>';
+}
+
+function renderFacts(){
+  const countries = new Set(EVENTS.map(e=>e.flag).filter(Boolean)).size;
+  $('facts').textContent = EVENTS.length+' '+pl(EVENTS.length,'этап','этапа','этапов')+' · '+countries+' '+pl(countries,'страна','страны','стран')+' · декабрь 2026 — ноябрь 2027';
+}
+
+function renderNext(){
+  const el = $('next');
+  if(!upcoming){
+    el.innerHTML = '<span class="eyebrow">Сезон завершён</span><h2>Все этапы сезона 2026/27 пройдены</h2><span class="meta">Смотрите календарь ниже</span>';
+    return;
+  }
+  const live = TODAY >= upcoming.a, n = dayDiff(upcoming.a, TODAY);
+  el.innerHTML = '<span class="eyebrow">'+(live?'Идёт сейчас':'Ближайший этап')+'</span>'+
+    '<h2>'+upcoming.t+(upcoming.st?', '+upcoming.st:'')+'</h2>'+
+    '<span class="meta">'+rangeText(upcoming)+'<br>'+upcoming.flag+' '+upcoming.place+' · K'+upcoming.k+'</span>'+
+    (live ? '<span class="count live"><b>на воде</b></span>'
+          : '<span class="count"><b>'+n+'</b><span>'+pl(n,'день','дня','дней')+' до старта</span></span>');
+}
+
+function renderChips(){
+  const total = EVENTS.filter(e=>!state.k||e.k===state.k);
+  let h = '<button class="chip" type="button" data-s="all" aria-pressed="'+(state.series==='all')+'">Все · '+total.length+'</button>';
+  for(const k in SERIES){
+    const n = total.filter(e=>e.s.includes(k)).length;
+    h += '<button class="chip" type="button" data-s="'+k+'" style="--c:'+SERIES[k].c+'" aria-pressed="'+(state.series===k)+'"><i></i>'+SERIES[k].short+' · '+n+'</button>';
+  }
+  $('chips').innerHTML = h;
+}
+
+function renderK(){
+  const base = EVENTS.filter(e=>state.series==='all'||e.s.includes(state.series));
+  $('krow').innerHTML = [1,2,3,4,5].map(k=>{
+    const n = base.filter(e=>e.k===k).length;
+    return '<button class="kbtn" type="button" data-k="'+k+'" aria-pressed="'+(state.k===k)+'"><b>K'+k+'</b>'+pennants(k)+'<small>'+n+' '+pl(n,'этап','этапа','этапов')+'</small></button>';
+  }).join('');
+  $('khint').textContent = state.k ? 'показаны только K'+state.k : 'что это и фильтр';
+}
+
+function renderStrip(){
+  $('mstrip').innerHTML = MONTHS.map((m,i)=>{
+    const n = EVENTS.filter(e=>e.mkey===m.key && match(e)).length;
+    return '<button class="mpill'+(n?'':' empty')+'" type="button" data-i="'+i+'" aria-pressed="'+(i===state.mi)+'">'+
+      '<span class="y">'+m.y+'</span><span class="m">'+MS[m.m]+'</span><span class="n">'+(n?n+' '+pl(n,'этап','этапа','этапов'):'—')+'</span></button>';
+  }).join('');
+  const strip = $('mstrip'), act = strip.children[state.mi];
+  if(act) strip.scrollLeft = act.offsetLeft - strip.clientWidth/2 + act.clientWidth/2;
+}
+
+function renderGrid(){
+  const m = MONTHS[state.mi];
+  $('mtitle').innerHTML = MN[m.m]+' <span>'+m.y+'</span>';
+  $('prev').disabled = state.mi===0;
+  $('nextm').disabled = state.mi===MONTHS.length-1;
+  const offset = (new Date(m.y,m.m,1).getDay()+6)%7;
+  const days = new Date(m.y,m.m+1,0).getDate();
+  const evs = EVENTS.filter(e=>e.a && match(e));
+  let h = '';
+  for(let i=0;i<offset;i++) h += '<span class="day blank"></span>';
+  for(let d=1; d<=days; d++){
+    const dt = new Date(m.y,m.m,d), t = dt.getTime();
+    const e = evs.find(x=>x.a.getTime()<=t && x.b.getTime()>=t);
+    let cls = 'day', sty = '';
+    if(e){
+      cls += ' has'; sty = ' style="--c:'+color(e)+'"';
+      if(e.a.getTime()===t) cls += ' start';
+      if(e.b.getTime()===t) cls += ' end';
+    }
+    if(t===TODAY.getTime()) cls += ' today';
+    if(state.day===d) cls += ' sel';
+    h += '<button type="button" class="'+cls+'"'+sty+' data-d="'+d+'" aria-label="'+d+' '+MG[m.m]+(e?', '+e.t:'')+'"><span>'+d+'</span></button>';
+  }
+  $('grid').innerHTML = h;
+}
+
+function renderMonthList(){
+  const m = MONTHS[state.mi];
+  let evs = EVENTS.filter(e=>e.mkey===m.key && match(e));
+  let head;
+  if(state.day){
+    const t = new Date(m.y,m.m,state.day).getTime();
+    evs = evs.filter(e=>e.a && e.a.getTime()<=t && e.b.getTime()>=t);
+    head = '<div class="lhead"><h4>'+state.day+' '+MG[m.m]+'</h4><button type="button" id="clearDay">Показать весь месяц</button></div>';
+  } else {
+    head = '<div class="lhead"><h4>Этапы месяца</h4><span>'+evs.length+' '+pl(evs.length,'этап','этапа','этапов')+'</span></div>';
+  }
+  const body = evs.length ? evs.map(card).join('')
+    : '<div class="empty">'+(state.day?'В этот день этапов нет.':'В этом месяце нет этапов по выбранному фильтру.')+'</div>';
+  $('mlist').innerHTML = head + body;
+}
+
+function renderSeason(){
+  let h = '';
+  MONTHS.forEach(m=>{
+    const evs = EVENTS.filter(e=>e.mkey===m.key && match(e));
+    if(!evs.length) return;
+    h += '<div class="lhead"><h4>'+MN[m.m]+' '+m.y+'</h4><span>'+evs.length+' '+pl(evs.length,'этап','этапа','этапов')+'</span></div>'+evs.map(card).join('');
+  });
+  const loose = EVENTS.filter(e=>!e.mkey && match(e));
+  if(loose.length) h += '<div class="lhead"><h4>Дата по назначению</h4><span>'+loose.length+' '+pl(loose.length,'этап','этапа','этапов')+'</span></div>'+loose.map(card).join('');
+  $('slist').innerHTML = h || '<div class="empty">По выбранному фильтру этапов нет.</div>';
+}
+
+function render(){
+  renderChips(); renderK();
+  $('vMonth').setAttribute('aria-pressed', state.view==='month');
+  $('vSeason').setAttribute('aria-pressed', state.view==='season');
+  $('monthView').hidden = state.view!=='month';
+  $('seasonView').hidden = state.view!=='season';
+  if(state.view==='month'){ renderStrip(); renderGrid(); renderMonthList(); }
+  else renderSeason();
+}
+
+function setMonth(i){
+  if(i<0 || i>=MONTHS.length) return;
+  state.mi = i; state.day = null; render();
+}
+
+$('chips').addEventListener('click', ev=>{
+  const b = ev.target.closest('[data-s]'); if(!b) return;
+  state.series = b.dataset.s; state.day = null; render();
+});
+$('krow').addEventListener('click', ev=>{
+  const b = ev.target.closest('[data-k]'); if(!b) return;
+  const k = +b.dataset.k; state.k = state.k===k ? 0 : k; state.day = null; render();
+});
+$('mstrip').addEventListener('click', ev=>{
+  const b = ev.target.closest('[data-i]'); if(b) setMonth(+b.dataset.i);
+});
+$('grid').addEventListener('click', ev=>{
+  const b = ev.target.closest('[data-d]'); if(!b) return;
+  const d = +b.dataset.d; state.day = state.day===d ? null : d;
+  renderGrid(); renderMonthList();
+});
+$('mlist').addEventListener('click', ev=>{
+  if(ev.target.id==='clearDay'){ state.day = null; renderGrid(); renderMonthList(); }
+});
+$('prev').addEventListener('click', ()=>setMonth(state.mi-1));
+$('nextm').addEventListener('click', ()=>setMonth(state.mi+1));
+$('vMonth').addEventListener('click', ()=>{ state.view='month'; render(); });
+$('vSeason').addEventListener('click', ()=>{ state.view='season'; render(); });
+$('next').addEventListener('click', ()=>{
+  if(!upcoming) return;
+  state.series='all'; state.k=0; state.view='month';
+  state.mi = MONTHS.findIndex(m=>m.key===upcoming.mkey); state.day = upcoming.a.getDate();
+  render();
+  $('cal').scrollIntoView({behavior:'smooth', block:'start'});
+});
+
+// Свайп по сетке листает месяцы
+let sx = null;
+$('cal').addEventListener('touchstart', e=>{ sx = e.touches[0].clientX; }, {passive:true});
+$('cal').addEventListener('touchend', e=>{
+  if(sx===null) return;
+  const dx = e.changedTouches[0].clientX - sx; sx = null;
+  if(Math.abs(dx) > 60) setMonth(state.mi + (dx<0 ? 1 : -1));
+}, {passive:true});
+
+// Telegram Mini App
+try{
+  const tg = window.Telegram && window.Telegram.WebApp;
+  if(tg){ tg.ready(); tg.expand(); if(tg.setHeaderColor) tg.setHeaderColor('#143272'); if(tg.setBackgroundColor) tg.setBackgroundColor('#061430'); }
+}catch(e){}
+
+renderFacts(); renderNext(); render();
+
+// Заставка «Подъём паруса»: раз за сессию, пропуск по нажатию, ?intro=1 показывает всегда
+(function(){
+  const sp = $('splash'); if(!sp) return;
+  let seen = false;
+  try{ seen = sessionStorage.getItem('tsc_intro')==='1'; }catch(e){}
+  const force = /[?&]intro=1/.test(location.search);
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if((seen && !force) || reduce){ sp.remove(); return; }
+  try{ sessionStorage.setItem('tsc_intro','1'); }catch(e){}
+
+  // Логотип: рисуется линией
+  const kids = Array.from(document.querySelector('.top .logo').children);
+  const svg = document.querySelector('.top .logo').cloneNode(true);
+  svg.setAttribute('class','sp-svg');
+  Array.from(svg.children).forEach((el,i)=>{
+    el.setAttribute('pathLength','1');
+    el.setAttribute('class', i===0 ? 'sc' : i===1 ? 'tz' : 'sh');
+  });
+  $('spLogo').appendChild(svg);
+
+  // Щит для эмблемы на парусе (те же контуры, что в логотипе)
+  let emblem = [];
+  try{
+    emblem = kids.slice(2).map(el=>{
+      if(el.tagName.toLowerCase()==='polygon'){
+        const p = el.getAttribute('points').trim().split(/[\s,]+/).map(Number);
+        let d = 'M'+p[0]+' '+p[1];
+        for(let i=2;i<p.length;i+=2) d += 'L'+p[i]+' '+p[i+1];
+        return new Path2D(d+'Z');
+      }
+      return new Path2D(el.getAttribute('d'));
+    });
+  }catch(e){ emblem = []; }
+
+  const cv = document.createElement('canvas'); cv.className = 'sp-cv';
+  sp.insertBefore(cv, sp.firstChild);
+  const ctx = cv.getContext('2d');
+  let W=0, H=0, dpr=1;
+  function size(){
+    dpr = Math.min(2, window.devicePixelRatio||1);
+    W = sp.clientWidth; H = sp.clientHeight;
+    cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
+  }
+  size(); window.addEventListener('resize', size);
+
+  const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
+  const prog = (t,a,b)=>clamp((t-a)/(b-a),0,1);
+  const eOut = p=>1-Math.pow(1-p,3);
+  const eIn = p=>p*p*p;
+  const eIO = p=>p<.5 ? 4*p*p*p : 1-Math.pow(-2*p+2,3)/2;
+  const lerp = (a,b,p)=>a+(b-a)*p;
+
+  const TZ0=1.8, TZ1=2.3, TD=2.3, TEND=3.15;
+  const streaks = Array.from({length:14}, ()=>({y:.06+Math.random()*.64, len:40+Math.random()*80, sp:260+Math.random()*300, a:.08+Math.random()*.18, o:Math.random()}));
+  const drops = Array.from({length:44}, ()=>({x:Math.random(), r:1+Math.random()*2.6, ph:Math.random()*6.28, h:8+Math.random()*34}));
+
+  function wave(t, yBase, amp, k, speed, fill, crest){
+    const pts = [];
+    for(let x=-20; x<=W+20; x+=8){
+      const ph = t*speed;
+      pts.push([x, yBase + amp*Math.sin(x*k+ph) + amp*.45*Math.sin(x*k*2.3-ph*1.4)]);
+    }
+    ctx.beginPath(); ctx.moveTo(-20, H+40);
+    pts.forEach(p=>ctx.lineTo(p[0],p[1]));
+    ctx.lineTo(W+20, H+40); ctx.closePath(); ctx.fillStyle = fill; ctx.fill();
+    if(crest){
+      ctx.beginPath(); pts.forEach((p,i)=> i ? ctx.lineTo(p[0],p[1]) : ctx.moveTo(p[0],p[1]));
+      ctx.strokeStyle = crest; ctx.lineWidth = 1.5; ctx.stroke();
+    }
+  }
+  function line(x1,y1,x2,y2){ ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke(); }
+
+  function boat(t, u, cx, wl, gust){
+    const pin = eOut(prog(t,.3,.85)); if(pin<=0) return;
+    const bob = Math.sin(t*3.2)*3*u;
+    const pitch = (1.6*Math.sin(t*2.3) + 6*gust) * Math.PI/180;
+    ctx.save();
+    ctx.translate(cx - (1-pin)*130*u + gust*16*u, wl + bob);
+    ctx.rotate(pitch); ctx.scale(u,u); ctx.globalAlpha = pin; ctx.lineCap = 'round';
+
+    // мачта и штаги
+    const pm = eOut(prog(t,.5,1));
+    ctx.strokeStyle = '#D6E4FF'; ctx.lineWidth = 3; line(0,-12,0,-12-246*pm);
+    if(pm>=1){ ctx.lineWidth = .7; ctx.strokeStyle = 'rgba(214,228,255,.55)'; line(0,-258,88,-17); line(0,-258,-76,-15); }
+
+    // грот: поднимается по мачте и надувается
+    const ph = eOut(prog(t,.8,1.5));
+    if(ph>0){
+      const belly = 13 + 5*Math.sin(t*4.2) + gust*16 + (1-ph)*9*Math.sin(t*24);
+      const tx=-4, ty=-34, hx=-4, hy=-34-214*ph, kx=-86, ky=-30;
+      const c1x=(hx+kx)/2 - belly*.94, c1y=(hy+ky)/2 - belly*.34;
+      const c2x=(tx+kx)/2, c2y=ty+5+belly*.3;
+      ctx.beginPath(); ctx.moveTo(tx,ty); ctx.lineTo(hx,hy);
+      ctx.quadraticCurveTo(c1x,c1y,kx,ky); ctx.quadraticCurveTo(c2x,c2y,tx,ty); ctx.closePath();
+      const g = ctx.createLinearGradient(kx-belly,0,tx,0);
+      g.addColorStop(0,'#A9CBFF'); g.addColorStop(.55,'#EAF3FF'); g.addColorStop(1,'#FFFFFF');
+      ctx.fillStyle = g; ctx.fill();
+      ctx.strokeStyle = 'rgba(36,76,154,.28)'; ctx.lineWidth = .8;
+      for(let i=1;i<5;i++){
+        const f=i/5, s=1-f;
+        const lx=(1-s)*(1-s)*hx + 2*(1-s)*s*c1x + s*s*kx, ly=(1-s)*(1-s)*hy + 2*(1-s)*s*c1y + s*s*ky;
+        line(hx, lerp(ty,hy,f), lx, ly);
+      }
+      const pe = prog(t,1.3,1.55)*ph;
+      if(pe>0 && emblem.length){
+        ctx.save(); ctx.globalAlpha = pin*pe*.9; ctx.translate(-33-belly*.25,-98);
+        const k = 27/193; ctx.scale(k,k); ctx.translate(-798.7,-256);
+        ctx.fillStyle = '#244C9A'; emblem.forEach(p=>ctx.fill(p)); ctx.restore();
+      }
+      ctx.strokeStyle = '#D6E4FF'; ctx.lineWidth = 2.6; line(tx,ty+2,kx-5,ky+2);
+    }
+
+    // стаксель: раскрывается от штага
+    const pj = eOut(prog(t,1.05,1.55));
+    if(pj>0){
+      const jb = 9 + 4*Math.sin(t*4.6+1) + gust*12 + (1-pj)*7*Math.sin(t*26);
+      const ax=86, ay=-17, bx=2, by=-238, kx=lerp(46,9,pj), ky=lerp(-128,-31,pj);
+      ctx.beginPath(); ctx.moveTo(ax,ay); ctx.lineTo(bx,by);
+      ctx.quadraticCurveTo((bx+kx)/2+jb,(by+ky)/2,kx,ky);
+      ctx.quadraticCurveTo((ax+kx)/2,(ay+ky)/2+jb*.5,ax,ay); ctx.closePath();
+      const g2 = ctx.createLinearGradient(0,0,90,0);
+      g2.addColorStop(0,'#5FA0FF'); g2.addColorStop(1,'#BBD8FF');
+      ctx.globalAlpha = pin*.96; ctx.fillStyle = g2; ctx.fill(); ctx.globalAlpha = pin;
+    }
+
+    // корпус
+    ctx.beginPath(); ctx.moveTo(-80,-15); ctx.lineTo(94,-17);
+    ctx.quadraticCurveTo(82,5,58,9); ctx.lineTo(-62,9); ctx.quadraticCurveTo(-76,5,-80,-15); ctx.closePath();
+    ctx.fillStyle = '#F2F7FF'; ctx.fill();
+    ctx.strokeStyle = '#3DD9EB'; ctx.lineWidth = 2.2; line(-76,-8,86,-9.5);
+    ctx.restore();
+  }
+
+  function scene(t){
+    const u = Math.min(W/400, H/800);
+    const wl = H*.80, cx = W*.5;
+    const gust = eIO(prog(t,1.5,1.95));
+    const g = ctx.createLinearGradient(0,0,0,H);
+    g.addColorStop(0,'#143272'); g.addColorStop(.55,'#0B2052'); g.addColorStop(1,'#061430');
+    ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+
+    const pz = eIn(prog(t,TZ0,TZ1));
+    ctx.save();
+    if(pz>0){ const fx=cx-22*u, fy=wl-96*u, s=1+pz*36; ctx.translate(fx,fy); ctx.scale(s,s); ctx.translate(-fx,-fy); }
+
+    // свечение за парусами
+    const pg = prog(t,.4,1.3);
+    const rg = ctx.createRadialGradient(cx,wl-130*u,0,cx,wl-130*u,260*u);
+    rg.addColorStop(0,'rgba(61,217,235,'+(.26*pg)+')'); rg.addColorStop(1,'rgba(61,217,235,0)');
+    ctx.fillStyle = rg; ctx.fillRect(0,0,W,H);
+
+    // ветер
+    const pw = prog(t,.2,.8);
+    ctx.lineCap = 'round'; ctx.lineWidth = 1.4;
+    streaks.forEach(s=>{
+      const span = W + s.len*2;
+      const x = ((s.o*span + t*s.sp*(1+gust*1.8)) % span) - s.len;
+      ctx.strokeStyle = 'rgba(255,255,255,'+((s.a+gust*.22)*pw)+')';
+      line(x, s.y*H, x+s.len*(1+gust), s.y*H);
+    });
+
+    const rise = (1-eOut(prog(t,0,.7)))*140;
+    wave(t, wl-8*u+rise, 6*u, .017, 1.6, '#1B4498', null);
+    boat(t, u, cx, wl, gust);
+    wave(t, wl+5*u+rise, 7*u, .021, -2.3, '#12327A', 'rgba(255,255,255,.55)');
+    wave(t, wl+36*u+rise, 9*u, .013, 1.9, '#0A2158', 'rgba(255,255,255,.22)');
+    ctx.restore();
+
+    const wo = prog(t, TZ0+(TZ1-TZ0)*.5, TZ1);
+    if(wo>0){ ctx.fillStyle = 'rgba(244,249,255,'+wo+')'; ctx.fillRect(0,0,W,H); }
+  }
+
+  // Белый парус превращается в волну и уходит вниз, открывая календарь
+  function wash(t){
+    const p = eIO(prog(t,TD,TD+.78));
+    const base = -70 + (H+170)*p;
+    const edge = (x,off)=> base + off + 17*Math.sin(x*.018+t*6) + 9*Math.sin(x*.041-t*8.5);
+    const layer = (off, fill)=>{
+      ctx.beginPath(); ctx.moveTo(-20, H+40);
+      for(let x=-20; x<=W+20; x+=8) ctx.lineTo(x, edge(x,off));
+      ctx.lineTo(W+20, H+40); ctx.closePath(); ctx.fillStyle = fill; ctx.fill();
+    };
+    layer(-34, 'rgba(61,217,235,.32)');
+    layer(-14, 'rgba(190,220,255,.6)');
+    layer(0, '#F4F9FF');
+    ctx.fillStyle = '#FFFFFF';
+    drops.forEach(d=>{
+      const x = d.x*W, y = edge(x,-18) - d.h*Math.abs(Math.sin(t*5+d.ph));
+      ctx.globalAlpha = .55 + .4*Math.sin(t*9+d.ph);
+      ctx.beginPath(); ctx.arc(x, y, d.r, 0, 6.283); ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+  }
+
+  function countUp(){
+    const b = document.querySelector('#next .count:not(.live) b'); if(!b) return;
+    const target = parseInt(b.textContent,10); if(!(target>0)) return;
+    const t0 = performance.now(), dur = 900;
+    (function step(t){
+      const p = Math.min(1,(t-t0)/dur);
+      b.textContent = Math.round(target*eOut(p));
+      if(p<1) requestAnimationFrame(step);
+    })(t0);
+  }
+
+  let raf = 0, done = false, zoomed = false, revealed = false;
+  const start = performance.now();
+  function finish(){
+    if(done) return; done = true;
+    cancelAnimationFrame(raf); window.removeEventListener('resize', size);
+    if(sp.parentNode) sp.remove();
+  }
+  function frame(now){
+    if(done) return;
+    const t = (now-start)/1000;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.clearRect(0,0,W,H);
+    if(!zoomed && t>=TZ0){ zoomed = true; sp.classList.add('zoom'); }
+    if(t<TD) scene(t);
+    else{
+      if(!revealed){
+        revealed = true; sp.style.background = 'transparent';
+        document.body.classList.add('reveal'); countUp();
+        setTimeout(()=>document.body.classList.remove('reveal'), 1700);
+      }
+      wash(t);
+    }
+    if(t<TEND) raf = requestAnimationFrame(frame); else finish();
+  }
+  raf = requestAnimationFrame(frame);
+  setTimeout(finish, 7000);
+  sp.addEventListener('click', ()=>{ document.body.classList.remove('reveal'); finish(); });
+})();
 </script>
 </body>
 </html>
